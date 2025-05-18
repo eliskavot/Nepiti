@@ -1,6 +1,6 @@
 
 packages <- c("tidyverse", "haven", "DescTools", "GGally", "skimr", "dplyr",
-  "psych", "car")
+  "psych", "car", "FSA")
 
 purrr::walk(packages, library, character.only = TRUE)
 
@@ -1184,7 +1184,8 @@ data %>%
        subtitle = "N = 547")+
   theme(legend.position = "bottom",
         legend.box = "horizontal",
-        legend.text = element_text(size = 8)) +
+        legend.text = element_text(size = 8),
+        axis.text.y = element_text(hjust = 1, size = 6)) +
   guides(fill = guide_legend(nrow = 2))
 
 ##lide, kteri po asbtinenci snizili trvale spotrebu tak mene casto ukoncili abstinenci drive
