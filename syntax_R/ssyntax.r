@@ -14,6 +14,7 @@ data_labelled <- generate_dictionary(data)
 
 ###Vidite to?
 ###ano vidim 
+##uf vidim
 
 # 1)kratk. abst. ------------------------------------------------------------
 #martin (ne)smrdi
