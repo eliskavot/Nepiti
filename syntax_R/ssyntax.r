@@ -15,6 +15,7 @@ data_labelled <- generate_dictionary(data)
 ###Vidite to?
 ###ano vidim 
 ##uf vidim
+##tak ja teda taky vidim k1
 
 # 1)kratk. abst. ------------------------------------------------------------
 #martin (ne)smrdi
