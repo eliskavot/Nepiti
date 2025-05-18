@@ -9,7 +9,23 @@ data <- read_sav(file = "Data/Alkohol 2025_v01.sav") %>%
 data_labelled <- generate_dictionary(data)
 
 
+basic_color = "#137F41"
 
+data %>%
+  filter(!is.na(nQ52_r1)) %>% 
+  count(nQ52_r1) %>%
+  mutate(procento = n / sum(n) * 100,
+         nQ52_r1 = reorder(nQ52_r1, procento)) %>%
+  ggplot(aes(x = nQ52_r1, y = procento)) +
+  geom_col(fill = basic_color) +
+  geom_text(aes(label = paste0(" ", round(procento, 0), "%")), 
+            hjust = 0.5, size = 3.5, fontface = "bold")+
+  theme_minimal() +
+  coord_flip() +
+  labs(title = "Abstinence < 3 týdny", x = "", y = "%", subtitle = paste("N = 397"))+
+  theme(legend.position = "none",
+        plot.title = element_text(size = 14, face = "bold"))
+  
 # Jak rozšířená je krátkodobá  abstinence v české společnosti? ------------
 
 
