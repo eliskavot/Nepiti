@@ -12,7 +12,7 @@ data <- read_sav(file = "C:/Users/marti/Desktop/FFUK/Mgr1/Alkohol v české spol
 library(labelled)
 data_labelled <- generate_dictionary(data)
 
-
+###Vidite to?
 
 # 1)kratk. abst. ------------------------------------------------------------
 #martin (ne)smrdi
