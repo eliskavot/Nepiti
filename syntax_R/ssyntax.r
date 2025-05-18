@@ -15,7 +15,7 @@ data_labelled <- generate_dictionary(data)
 
 
 # 1)kratk. abst. ------------------------------------------------------------
-#martin smrdi
+#martin (ne)smrdi
 
 #########nQ51_r1 > 3 tydny
 
