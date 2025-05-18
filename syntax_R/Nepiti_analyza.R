@@ -9,7 +9,9 @@ data <- read_sav(file = "Data/Alkohol 2025_v01.sav") %>%
 data_labelled <- generate_dictionary(data)
 
 
-basic_color = "#137F41"
+basic_color = "#D9A939"
+
+seq_pallet = c("#FAF0D1", "#F0C661", "#D9A939", "#B57F22", "#855A13")
 
 data %>%
   filter(!is.na(nQ52_r1)) %>% 
