@@ -784,3 +784,62 @@ data %>%
   labs(x = "", y = "", fill = "", 
        title = "Dodržení abstinence x pohlaví",
        subtitle = "N = 547")
+
+
+# Otevrene otazky - kodovani ----------------------------------------------
+
+library(writexl)
+
+odpovedi_tQ57_0_0 <- data %>% 
+  select(respondent_id_internal, tQ57_0_0) %>% 
+  filter(tQ57_0_0 != "")
+write_xlsx(odpovedi_tQ57_0_0, "odpovedi_tQ57_0_0.xlsx")
+
+OE_all <- data %>% 
+  select(respondent_id_internal, tQ57_0_0, tQ60_0_0, tQ62_0_0, tQ64_0_0, tQ70_0_0, 
+         tQ74_0_0, tQ76_0_0, tQ78_0_1, tQ78_1_1)
+write_xlsx(OE_all, "odpovedi_all.xlsx")
+
+OE_tQ60_0_0<- data %>% 
+  select(respondent_id_internal, tQ60_0_0) %>% 
+  filter(tQ60_0_0 != "")
+write_xlsx(OE_tQ60_0_0, "OE_tQ60_0_0.xlsx")
+
+OE_tQ62_0_0<- data %>% 
+  select(respondent_id_internal, tQ62_0_0) %>% 
+  filter(tQ62_0_0 != "")
+write_xlsx(OE_tQ62_0_0, "OE_tQ62_0_0.xlsx")
+
+OE_tQ64_0_0<- data %>% 
+  select(respondent_id_internal, tQ64_0_0) %>% 
+  filter(tQ64_0_0 != "")
+write_xlsx(OE_tQ64_0_0, "OE_tQ64_0_0.xlsx")
+
+OE_tQ70_0_0<- data %>% 
+  select(respondent_id_internal, tQ70_0_0) %>% 
+  filter(tQ70_0_0 != "")
+write_xlsx(OE_tQ70_0_0, "OE_tQ70_0_0.xlsx")
+
+OE_tQ74_0_0<- data %>% 
+  select(respondent_id_internal, tQ74_0_0) %>% 
+  filter(tQ74_0_0 != "")
+write_xlsx(OE_tQ74_0_0, "OE_tQ74_0_0.xlsx")
+
+OE_tQ76_0_0<- data %>% 
+  select(respondent_id_internal, tQ76_0_0) %>% 
+  filter(tQ76_0_0 != "")
+write_xlsx(OE_tQ76_0_0, "OE_tQ76_0_0.xlsx")
+
+OE_tQ78_0_1<- data %>% 
+  select(respondent_id_internal, tQ78_0_1) %>% 
+  filter(tQ78_0_1 != "")
+write_xlsx(OE_tQ78_0_1, "OE_tQ78_0_1.xlsx")
+
+OE_tQ78_1_1<- data %>% 
+  select(respondent_id_internal, tQ78_1_1) %>% 
+  filter(tQ78_1_1 != "")
+write_xlsx(OE_tQ78_1_1, "OE_tQ78_1_1.xlsx")
+
+
+
+
