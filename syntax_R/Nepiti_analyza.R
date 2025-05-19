@@ -826,6 +826,65 @@ data %>%
 
 # Jaké jsou osobní důvody (motivace) občanů ČR ke krátkodobé absti --------
 
+#---------------rekodovani promennych v duvodech/motivacich--------------------#
+# 0 - 1 = 1, 2 - 3 = 2, 4 - 6 = 3, 7 - 8 = 4, 9 - 10 = 5
+# puvodni nQ58_0_1 : nQ58_10_1 v datech zustavaji
+# nQ58_0_1_num : nQ58_10_1_num numericka verze
+# nQ58_0_1_fac : nQ58_10_1_fac faktorova verze (1 = Zcela nedůležité, 2 = Spíše nedůležité, 3 = Středně důležité, 4 = Spíše důležité, 5 = Zcela zásadní)
+
+vars <- paste0("nQ58_", 0:10, "_1")
+
+
+var_labels <- sapply(data[vars], function(x) attr(x, "label"))
+
+
+data_num <- lapply(data[vars], function(x) {
+  x <- as.character(x)
+  x[x == "Nevím"] <- NA
+  as.numeric(gsub(" =.*", "", x))
+})
+
+
+data_num <- lapply(data_num, function(x) {
+  case_when(
+    x <= 1              ~ 1,
+    x > 1 & x <= 3      ~ 2,
+    x > 3 & x <= 6      ~ 3,
+    x > 6 & x <= 8      ~ 4,
+    x > 8 & x <= 10     ~ 5,
+    TRUE                ~ NA_real_
+  )
+})
+
+
+vars_num <- paste0(vars, "_num")
+for (i in seq_along(vars)) {
+  data[[vars_num[i]]] <- data_num[[i]]
+  attr(data[[vars_num[i]]], "label") <- var_labels[[i]]
+}
+
+
+value_labels <- c(
+  "Zcela nedůležité"    = 1,
+  "Spíše nedůležité"    = 2,
+  "Středně důležité"    = 3,
+  "Spíše důležité"      = 4,
+  "Zcela zásadní"       = 5
+)
+
+
+vars_fac <- paste0(vars, "_fac")
+for (i in seq_along(vars_num)) {
+  v_num <- vars_num[i]
+  v_fac <- vars_fac[i]
+  
+  data[[v_fac]] <- factor(
+    data[[v_num]],
+    levels = 1:5,
+    labels = names(value_labels)
+  )
+  attr(data[[v_fac]], "label") <- var_labels[[i]]
+}
 
 
 
