@@ -890,6 +890,70 @@ for (i in seq_along(vars_num)) {
 
 # Co představuje překážky během krátkodobé abstinence? --------------------
 
+#--------------------rekodovani promennych v prekazkach------------------------#
+#nQ59_0_1 : nQ59_10_1
+# 0 = 1, 1 - 3 = 2, 4 - 6 = 3, 7 - 10 = 4
+# puvodni nQ59_0_1 : nQ59_10_1 v datech zustavaji
+# nQ59_0_1_num : nQ59_10_1_num numericka verze
+# nQ59_0_1_fac : nQ59_10_1_fac faktorova verze (1 = Vůbec ne, 2 = Trochu, 3 = Do určité míry, 4 = Velmi)
+
+
+
+vars <- paste0("nQ59_", 0:10, "_1")
+
+
+var_labels <- sapply(data[vars], function(x) attr(x, "label"))
+
+
+data_num <- lapply(data[vars], function(x) {
+  x <- as.character(x)
+  x[x == "Nevím"] <- NA
+  as.numeric(gsub(" =.*", "", x))
+})
+
+
+data_num <- lapply(data_num, function(x) {
+  case_when(
+    x == 0                  ~ 1,
+    x >= 1 & x <= 3         ~ 2,
+    x >= 4 & x <= 6         ~ 3,
+    x >= 7 & x <= 10        ~ 4,
+    TRUE                    ~ NA_real_
+  )
+})
+
+
+
+vars_num <- paste0(vars, "_num")
+for (i in seq_along(vars)) {
+  data[[vars_num[i]]] <- data_num[[i]]
+  attr(data[[vars_num[i]]], "label") <- var_labels[[i]]
+}
+
+
+value_labels <- c(
+  "Vůbec ne"    = 1,
+  "Trochu"    = 2,
+  "Do určité míry"    = 3,
+  "Velmi"      = 4)
+
+
+vars_fac <- paste0(vars, "_fac")
+for (i in seq_along(vars_num)) {
+  v_num <- vars_num[i]
+  v_fac <- vars_fac[i]
+  
+  data[[v_fac]] <- factor(
+    data[[v_num]],
+    levels = 1:4,
+    labels = names(value_labels)
+  )
+  attr(data[[v_fac]], "label") <- var_labels[[i]]
+}
+
+table(data$nQ59_0_1)
+table(data$nQ59_0_1_num)
+table(data$nQ59_0_1_fac)
 
 
 
