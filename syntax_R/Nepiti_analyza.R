@@ -37,10 +37,89 @@ data %>%
   labs(title = "Abstinence < 3 týdny", x = "", y = "%", subtitle = paste("N = 397"))+
   theme(legend.position = "none",
         plot.title = element_text(size = 14, face = "bold"))
+
+
+
+
+
+
   
 # Jak rozšířená je krátkodobá  abstinence v české společnosti? ------------
 
 
+
+
+
+#--------------------------------tQ54_0_0--------------------------------------#
+#-> medián, min, max, průměr otázky tQ54_0_0 (Jak dlouho trvala/trvá Vaše
+#poslední krátkodobá abstinence? (v týdnech))
+
+
+table(data$tQ54_0_0)
+data$tQ54_0_0[data$tQ54_0_0 == "Nevím, nedokážu spočítat"] <- NA 
+data$tQ54_0_0_num <- as.numeric(as.character(data$tQ54_0_0))
+
+describe(data$tQ54_0_0_num, quant=c(.25,.75)) 
+#  vars   n  mean    sd median trimmed  mad min max range  skew kurtosis   se Q0.25 Q0.75
+#1    1 489 16.12 50.07      6    8.88 4.45   1 670   669 10.35   118.35 2.26     4    12
+
+
+##CI pro prumer 
+mean_val <- mean(data$tQ54_0_0_num, na.rm = TRUE)
+se_val <- sd(data$tQ54_0_0_num, na.rm = TRUE) / sqrt(sum(!is.na(data$tQ54_0_0_num))) #sd/sqrt(n)
+ci_lower <- mean_val - 1.96 * se_val
+ci_upper <- mean_val + 1.96 * se_val
+cat("95% CI pro prumer:", round(ci_lower, 2), "-", round(ci_upper, 2)) #11,7 - 20,6
+
+
+data %>%
+  ggplot(aes(x = tQ54_0_0_num)) +
+  geom_histogram(aes(y = after_stat(density)),
+                 bins = 15, fill = "#D9A939", color = "white", alpha = 0.9) +
+  geom_density(color = "black", size = 0.4) +
+  theme_minimal() +
+  labs(title = "Doba abstinence (v týdnech)", x = "Týdny", y = "",
+       subtitle = paste("N: 489",
+                        "| Průměr:", round(mean(data$tQ54_0_0_num, na.rm=TRUE), 1),
+                        "| Median:", median(data$tQ54_0_0_num, na.rm=TRUE),
+                        "| SD:", round(sd(data$tQ54_0_0_num, na.rm=TRUE), 1))) +
+  theme(plot.title = element_text(face = "bold"))+
+  scale_x_log10()
+
+
+data %>% 
+  ggplot(mapping = aes(x = tQ54_0_0_num))+
+  geom_histogram(bins = 15,fill = "#D9A939", color = "white", alpha = 0.9)+
+  theme_minimal()+
+  labs(title = "Doba abstinence (v týdnech)", x = "Týdny", y = "N",
+       subtitle = paste("N: 489",
+                        "| Průměr:", round(mean(data$tQ54_0_0_num, na.rm=TRUE), 1),
+                        "| Median:", median(data$tQ54_0_0_num, na.rm=TRUE),
+                        "| SD:", round(sd(data$tQ54_0_0_num, na.rm=TRUE), 1)))+
+  theme(plot.title = element_text(face = "bold"))+
+  scale_x_log10()
+
+
+
+##s prumerem + CI
+data %>% 
+  ggplot(aes(x = tQ54_0_0_num)) +
+  geom_histogram(bins = 15, fill = "#D9A939", color = "white", alpha = 0.9) +
+  geom_vline(xintercept = mean_val, color = "darkred", linetype = "solid", size = 1, alpha = 0.5) +
+  geom_vline(xintercept = ci_lower, color = "darkred", linetype = "dashed", size = 0.8, alpha = 0.5) +
+  geom_vline(xintercept = ci_upper, color = "darkred", linetype = "dashed", size = 0.8, alpha = 0.5) +
+  theme_minimal() +
+  labs(
+    title = "Doba abstinence (v týdnech)",
+    x = "Týdny", y = "N",
+    subtitle = paste("N: 489",
+                     "| Průměr:", round(mean_val, 1),
+                     "| 95% CI pro průměr:", round(ci_lower, 1), "-", round(ci_upper, 1),
+                     "| Median:", median(data$tQ54_0_0_num, na.rm = TRUE),
+                     "| SD:", round(sd(data$tQ54_0_0_num, na.rm = TRUE), 1))
+  ) +
+  theme(plot.title = element_text(face = "bold")) +
+  scale_x_log10()
 
 
 # V jakých částech společnosti je krátkodobá/dlouhodobá abstinence --------
