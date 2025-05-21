@@ -841,5 +841,16 @@ OE_tQ78_1_1<- data %>%
 write_xlsx(OE_tQ78_1_1, "OE_tQ78_1_1.xlsx")
 
 
+# skaly a indexy ----------------------------------------------------------
+library(psych)
 
+sloupce_nQ59 <- grep("^nQ59", names(data), value = TRUE)
+
+# Vytvoří podmnožinu dat jen s těmito sloupci
+sloupce_nQ59 <- grep("^nQ59", names(data), value = TRUE)
+data_nQ59 <- data[, sloupce_nQ59]
+describe(data_nQ59)
+
+select(data$nQ59_0_1)
+table(data$nQ59_0_1)
 
