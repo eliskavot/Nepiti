@@ -1045,6 +1045,12 @@ table(data$nQ59_0_1_fac)
 
 # Jaká část obyvatel ČR se pokouší nějakým způsobem kontrolovaně o --------
 
+#způsoby omezování alkoholu
+  #nQ65_r1 nQ67_r1 nQ69_r1 nQ71_r1 nQ72_r1 nQ73_r1 nQ74_r1
+
+zpusob_omezovani = data %>% 
+  select(nQ65_r1, nQ67_r1, nQ69_r1, nQ71_r1, nQ73_r1, nQ75_r1)
+
 
 
 
