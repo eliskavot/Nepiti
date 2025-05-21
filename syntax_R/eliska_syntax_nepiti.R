@@ -8,8 +8,7 @@ library(stringr)
 library(forcats)
 purrr::walk(packages, library, character.only = TRUE)
 
-
-data <- read_sav(file = "Data/Alkohol 2025_v01.sav") %>%    
+data <- read_sav(file = "Data/Alkohol 2025_v02.sav") %>%    
   mutate(across(where(is.labelled), as_factor))
 
 
@@ -95,7 +94,7 @@ recode_levels <- function(x) {
 data_s_upr_nQ58 <- data %>%
   mutate(across(matches("^nQ58_\\d+_1$"), recode_levels))
 
-data_s_upr_nQ58 %>%
+nQ58_battery = data_s_upr_nQ58 %>%
   select(starts_with("nQ58"), -nQ58_0_1) %>%
   filter(!is.na(nQ58_2_1)) %>%
   pivot_longer(cols = everything(), names_to = "item", values_to = "value") %>%
@@ -121,7 +120,17 @@ data_s_upr_nQ58 %>%
   geom_text(position = position_stack(vjust = 0.5), size = 3) +
   scale_x_continuous(labels = percent_format()) +
   scale_y_discrete(labels = ~str_wrap(., width = 40)) +
-  scale_fill_manual(values = c(rev(seq_pallet5), missing_color)) +
+  scale_fill_manual(values = c(missing_color, rev(seq_pallet5))) +
   guides(fill = guide_legend(reverse = TRUE, byrow = TRUE)) +
   theme_minimal() +
   theme(legend.position = "right")
+
+ggsave(plot = nQ58_battery, filename = "nQ58-battery.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24, height = 12, scaling = 1)
+# kontrola nulařů ---------------------------------------------------------
+
+kontrola_nul = data %>% 
+  filter(celk_spotr2 == 0) %>% 
+  select(celk_spotr2, nQ01_r1, starts_with("nQ13"))
+
+table(kontrola_nul$nQ13_4_r)
