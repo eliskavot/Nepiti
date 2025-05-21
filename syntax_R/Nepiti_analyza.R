@@ -8,6 +8,14 @@ data <- read_sav(file = "Data/Alkohol 2025_v01.sav") %>%
   mutate(across(where(is.labelled), as_factor))
 data_labelled <- generate_dictionary(data)
 
+# NASTAVENÍ BAREVNÝCH PALET
+
+basic_color = "#D9A939"
+missing_color = "grey80"
+
+seq_pallet5 = c("#FAF0D1", "#F0C661", "#D9A939", "#B57F22", "#855A13")
+seq_pallet4 = c("#FAF0D1", "#F0C661", "#B57F22", "#855A13")
+
 ##### tvorba veku se 4 kategoriemi 
 
 data$vek4 <- cut(
@@ -18,10 +26,6 @@ data$vek4 <- cut(
 
 table(data$vek4)
 
-
-basic_color = "#D9A939"
-
-seq_pallet = c("#FAF0D1", "#F0C661", "#D9A939", "#B57F22", "#855A13")
 
 data %>%
   filter(!is.na(nQ52_r1)) %>% 
@@ -37,10 +41,6 @@ data %>%
   labs(title = "Abstinence < 3 týdny", x = "", y = "%", subtitle = paste("N = 397"))+
   theme(legend.position = "none",
         plot.title = element_text(size = 14, face = "bold"))
-
-
-
-
 
 
   
