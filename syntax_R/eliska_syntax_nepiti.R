@@ -83,9 +83,9 @@ recode_levels <- function(x) {
   fct_collapse(
     x,
     "Zcela nedůležité" = c("0 = Zcela nedůležité", "1"),
-    "Spíše nedůležité" = c("2", "3"),
-    "Středně důležité" = c("4", "5", "6"),
-    "Spíše důležité" = c("7", "8"),
+    "2" = c("2", "3"),
+    "3" = c("4", "5", "6"),
+    "4" = c("7", "8"),
     "Zcela zásadní" = c("9", "10 = Naprosto zásadní"),
     "Nevím" = c("Nevím")
   )
@@ -121,12 +121,16 @@ nQ58_battery = data_s_upr_nQ58 %>%
   scale_x_continuous(labels = percent_format()) +
   scale_y_discrete(labels = ~str_wrap(., width = 40)) +
   scale_fill_manual(values = c(missing_color, rev(seq_pallet5))) +
-  guides(fill = guide_legend(reverse = TRUE, byrow = TRUE)) +
+  guides(fill = guide_legend(reverse = TRUE, byrow = TRUE, nrow = 1)) +
   theme_minimal() +
-  theme(legend.position = "right")
+  theme(legend.position = "top")+
+  labs(title = "Důvody pro rozhodnutí krátkodobě abstinovat ",
+       fill = "",
+       y = "",
+       x = "")
 
 ggsave(plot = nQ58_battery, filename = "nQ58-battery.png", path = "grafy",
-       device = ragg::agg_png, units = "cm", width = 24, height = 12, scaling = 1)
+       device = ragg::agg_png, units = "cm", width = 24, height = 14.5, scaling = 1)
 # kontrola nulařů ---------------------------------------------------------
 
 kontrola_nul = data %>% 
@@ -134,3 +138,61 @@ kontrola_nul = data %>%
   select(celk_spotr2, nQ01_r1, starts_with("nQ13"))
 
 table(kontrola_nul$nQ13_4_r)
+
+# překážky při abstinenci -------------------------------------------------
+
+table(data$nQ59_0_1, useNA = "ifany")
+levels(data$nQ59_0_1)
+
+recode_levels_2 <- function(x) {
+  fct_collapse(
+    x,
+    "Vůbec ne" = c("0 = Vůbec"),
+    "2" = c("1","2", "3"),
+    "3" = c("4", "5", "6"),
+    "Velmi" = c("7", "8", "9", "10 = Velmi"),
+    "Nevím" = c("Nevím")
+  )
+}
+
+data_s_upr_nQ59 <- data %>%
+  mutate(across(matches("^nQ59_\\d+_1$"), recode_levels_2))
+
+nQ59_battery = data_s_upr_nQ59 %>%
+  select(starts_with("nQ59")) %>%
+  filter(!is.na(nQ59_0_1)) %>%
+  pivot_longer(cols = everything(), names_to = "item", values_to = "value") %>%
+  count(item, value) %>%
+  left_join(data_labelled %>% 
+              select(item = variable, label) %>%
+              mutate(label = str_extract(label, "\\[.*?\\]") %>% 
+                       str_remove_all("\\[|\\]")), 
+            by = "item") %>%
+  group_by(item) %>%
+  mutate(percent = n / sum(n, na.rm = TRUE),
+         pos_freq = sum(percent[value %in% c("Velmi")])) %>%
+  ungroup() %>%
+  mutate(
+    percent_label = percent(percent, accuracy = 1, suffix = ""),
+    percent_label = if_else(percent <= 0.05, "", percent_label),
+    label = paste("...", label, sep = ""),
+    label = fct_reorder(label, pos_freq),
+    value = fct_rev(value)
+  ) %>%
+  ggplot(aes(x = percent, y = label, fill = value, label = percent_label)) +
+  geom_col(color = "white") +
+  geom_text(position = position_stack(vjust = 0.5), size = 3) +
+  scale_x_continuous(labels = percent_format()) +
+  scale_y_discrete(labels = ~str_wrap(., width = 40)) +
+  scale_fill_manual(values = c(missing_color, rev(seq_pallet4))) +
+  guides(fill = guide_legend(reverse = TRUE, byrow = TRUE)) +
+  theme_minimal() +
+  theme(legend.position = "top")+
+  labs(title = "Do jaké míry jste se během Vaší poslední krátkodobé abstinence potýkal/a
+s následujícími překážkami? ",
+       fill = "",
+       y = "",
+       x = "")
+
+ggsave(plot = nQ59_battery, filename = "nQ59-battery.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24, height = 15, scaling = 1)
