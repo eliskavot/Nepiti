@@ -6,13 +6,14 @@
 
 packages <- c("tidyverse", "haven", "DescTools", "GGally", "skimr", "dplyr",
               "psych", "car")
+install.packages("car")
 
 purrr::walk(packages, library, character.only = TRUE)
 
 library(labelled)
 
 # Data --------------------------------------------------------------------
-data <- read_sav(file = "Data/Alkohol 2025_v01.sav") %>%    
+data <- read_sav(file = "Data/Alkohol 2025_v02.sav") %>%    
   mutate(across(where(is.labelled), as_factor))
 
 data_labelled <- generate_dictionary(data)
@@ -74,14 +75,6 @@ data %>%
   theme(legend.position = "none",
         plot.title = element_text(size = 14, face = "bold"))
 
-
-
-
-
-
-
-
-
 ####### > 3 tydny x kolik piji (celk_spotr3_5kat)
 
 table(data$celk_spotr3_5kat)
@@ -123,12 +116,6 @@ data %>%
        subtitle = "N = 1011")
 
 
-
-
-
-
-
-
 ####### < 3 tydny x kolik piji (celk_spotr3_5kat)
 
 sum(!is.na(data$nQ52_r1)) #397
@@ -159,11 +146,6 @@ data %>%
   coord_flip() +
   labs(x = "Počet sklenic", y = "", fill = "", title = "Abstinence < 3 týdny x spotřeba",
        subtitle = "N = 395")
-
-
-
-
-
 
 
 
@@ -294,9 +276,6 @@ data %>%
 
 
 
-
-
-
 # <3 tydny x pohlavi 
 
 table <- table(data$nQ52_r1, data$nQ88_r1)
@@ -408,9 +387,6 @@ data %>%
   scale_fill_brewer(palette = "Set2")+
   labs(x = "Příjem", y = "", fill = "", title = "Abstinence < 3 týdny x příjem",
        subtitle = "N = 747")
-
-
-
 
 
 
