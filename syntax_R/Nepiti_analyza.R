@@ -1048,10 +1048,147 @@ table(data$nQ59_0_1_fac)
 #způsoby omezování alkoholu
   #nQ65_r1 nQ67_r1 nQ69_r1 nQ71_r1 nQ72_r1 nQ73_r1 nQ74_r1
 
+
+#PODLE DEMOGRAFIK
+
+#demografika
+  #vzd4
+  #pohlavi nQ88_r1
+  #vek tQ89_0_0
+  #velikost bydliste 5kat tQ108_10_1
+  #ekonomicka aktivita ea2
+  #prijem prijem_osob
+  #celkova spotreba(jen co piji) celk_spotr_filtr_5kat
+
 zpusob_omezovani = data %>% 
   select(nQ65_r1, nQ67_r1, nQ69_r1, nQ71_r1, nQ73_r1, nQ75_r1)
 
+#vzdělání 4 kategorie
+data %>% 
+  count(nQ75_r1, vzd4) %>% 
+  na.omit() %>%
+  group_by(vzd4) %>%
+  mutate(perc = n / sum(n)) %>% 
+  ggplot(aes(x = vzd4, y = perc, fill = nQ75_r1)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = scales::percent(perc, accuracy = 1)), 
+            position = position_fill(vjust = 0.5), 
+            size = 3, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_fill_brewer(palette = "Set3")+
+  labs(x = "", y = "", fill = "", title = "max množství x vzdělání",
+       subtitle = "N = 1022")+
+  theme(legend.position = "bottom",
+        legend.box = "horizontal",
+        legend.text = element_text(size = 8),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  guides(fill = guide_legend(nrow = 2))
 
+#pohlaví
+data %>% 
+  count(nQ65_r1, nQ88_r1) %>% 
+  na.omit() %>%
+  group_by(nQ88_r1) %>%
+  mutate(perc = n / sum(n)) %>% 
+  ggplot(aes(x = nQ88_r1, y = perc, fill = nQ65_r1)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = scales::percent(perc, accuracy = 1)), 
+            position = position_fill(vjust = 0.5), 
+            size = 3, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_fill_brewer(palette = "Set3")+
+  labs(x = "", y = "", fill = "", title = "max množství x pohlaví",
+       subtitle = "N = 1022")+
+  theme(legend.position = "bottom",
+        legend.box = "horizontal",
+        legend.text = element_text(size = 8),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  guides(fill = guide_legend(nrow = 2))
+
+#vek 
+
+data %>% 
+  count(nQ65_r1, vek5) %>% 
+  na.omit() %>%
+  group_by(vek5) %>% 
+  mutate(perc = n / sum(n)) %>% 
+  ggplot(aes(x = vek5, y = perc, fill = nQ65_r1)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = scales::percent(perc, accuracy = 1)), 
+            position = position_fill(vjust = 0.5), 
+            size = 3, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_fill_brewer(palette = "Set3")+
+  labs(x = "", y = "", fill = "", title = "max množství x věk",
+       subtitle = "N = 1022")+
+  theme(legend.position = "bottom",
+        legend.box = "horizontal",
+        legend.text = element_text(size = 8),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  guides(fill = guide_legend(nrow = 2))
+
+#INDEX OMEZOVÁNÍ - průměrový index
+
+# recode
+
+recode_limited <- function(x) {
+  dplyr::recode(as.numeric(x), `1` = 2, `2` = 1, `3` = 0)}
+
+data_omezovani = data %>%
+  mutate(nQ65_r1_rec = recode_limited(nQ65_r1),
+         nQ67_r1_rec = recode_limited(nQ67_r1),
+         nQ69_r1_rec = recode_limited(nQ69_r1),
+         nQ71_r1_rec = recode_limited(nQ71_r1),
+         nQ73_r1_rec = recode_limited(nQ73_r1),
+         nQ75_r1_rec = recode_limited(nQ75_r1))
+
+data_omezovani_kontrola = data_omezovani %>% 
+  select(nQ65_r1_rec, nQ67_r1_rec, nQ69_r1_rec, nQ71_r1_rec, nQ73_r1_rec, nQ75_r1_rec)
+
+
+# vytvoření indexu
+data_omezovani <- data_omezovani %>%
+  mutate(omezovani_index = rowMeans(across(c(nQ65_r1_rec,
+                                             nQ67_r1_rec,
+                                             nQ69_r1_rec,
+                                             nQ71_r1_rec,
+                                             nQ73_r1_rec,
+                                             nQ75_r1_rec)), na.rm = TRUE))
+
+hist(data_omezovani$omezovani_index)
+summary(data_omezovani$omezovani_index)
+
+#interpretace demografika
+
+#pohlavi
+data_omezovani %>%
+  group_by(nQ88_r1) %>%
+  summarise(prumer_index = mean(omezovani_index, na.rm = TRUE),
+            sd_index = sd(omezovani_index, na.rm = TRUE),
+            n = n())
+
+boxplot(omezovani_index ~ nQ88_r1,data = data_omezovani)
+
+#vzd4
+boxplot(omezovani_index ~ vzd4,data = data_omezovani)
+
+#velikost bydliste 5kat 
+boxplot(omezovani_index ~ tQ108_10_1,data = data_omezovani)
+
+#ekonomicka aktivita 
+boxplot(omezovani_index ~ ea2,data = data_omezovani)
+
+#prijem 
+boxplot(omezovani_index ~ prijem_osob,data = data_omezovani)
+
+#celkova spotreba(jen co piji) 
+boxplot(omezovani_index ~ celk_spotr_filtr_5kat,data = data_omezovani)
 
 
 # Jaké strategie občané ČR využívají v oblasti kontrolovaného omez --------
