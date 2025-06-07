@@ -1,6 +1,6 @@
 
 packages <- c("tidyverse", "haven", "DescTools", "GGally", "skimr", "dplyr",
-              "psych", "car", "FSA", "psych", "labelled")
+              "psych", "car", "FSA", "psych", "labelled", "parameters", "performance")
 purrr::walk(packages, library, character.only = TRUE)
 
 
@@ -1133,7 +1133,7 @@ data %>%
         panel.grid.minor = element_blank()) +
   guides(fill = guide_legend(nrow = 2))
 
-#INDEX OMEZOVÁNÍ - průměrový index
+#INDEX OMEZOVÁNÍ
 
 # recode
 
@@ -1153,43 +1153,66 @@ data_omezovani_kontrola = data_omezovani %>%
 
 
 # vytvoření indexu
+
+#prumerovy
 data_omezovani <- data_omezovani %>%
-  mutate(omezovani_index = rowMeans(across(c(nQ65_r1_rec,
+  mutate(omezovani_index_mea = rowMeans(across(c(nQ65_r1_rec,
                                              nQ67_r1_rec,
                                              nQ69_r1_rec,
                                              nQ71_r1_rec,
                                              nQ73_r1_rec,
                                              nQ75_r1_rec)), na.rm = TRUE))
 
-hist(data_omezovani$omezovani_index)
-summary(data_omezovani$omezovani_index)
+hist(data_omezovani$omezovani_index_mea)
+summary(data_omezovani$omezovani_index_mea)
+
+#souctovy
+
+data_omezovani <- data_omezovani %>%
+  mutate(omezovani_index_sum = rowSums(across(c(nQ65_r1_rec,
+                                            nQ67_r1_rec,
+                                            nQ69_r1_rec,
+                                            nQ71_r1_rec,
+                                            nQ73_r1_rec,
+                                            nQ75_r1_rec)), na.rm = TRUE))
+hist(data_omezovani$omezovani_index_sum)
+summary(data_omezovani$omezovani_index_sum)
 
 #interpretace demografika
 
 #pohlavi
-data_omezovani %>%
-  group_by(nQ88_r1) %>%
-  summarise(prumer_index = mean(omezovani_index, na.rm = TRUE),
-            sd_index = sd(omezovani_index, na.rm = TRUE),
-            n = n())
-
-boxplot(omezovani_index ~ nQ88_r1,data = data_omezovani)
+boxplot(omezovani_index_sum ~ nQ88_r1,data = data_omezovani)
+boxplot(omezovani_index_mea ~ nQ88_r1,data = data_omezovani)
 
 #vzd4
-boxplot(omezovani_index ~ vzd4,data = data_omezovani)
+boxplot(omezovani_index_sum ~ vzd4,data = data_omezovani)
+boxplot(omezovani_index_mea ~ vzd4,data = data_omezovani)
 
 #velikost bydliste 5kat 
-boxplot(omezovani_index ~ tQ108_10_1,data = data_omezovani)
+boxplot(omezovani_index_sum ~ tQ108_10_1,data = data_omezovani)
+boxplot(omezovani_index_mea ~ tQ108_10_1,data = data_omezovani)
 
 #ekonomicka aktivita 
-boxplot(omezovani_index ~ ea2,data = data_omezovani)
+boxplot(omezovani_index_sum ~ ea2,data = data_omezovani)
+boxplot(omezovani_index_mea ~ ea2,data = data_omezovani)
 
 #prijem 
-boxplot(omezovani_index ~ prijem_osob,data = data_omezovani)
+boxplot(omezovani_index_sum ~ prijem_osob,data = data_omezovani)
+boxplot(omezovani_index_mea ~ prijem_osob,data = data_omezovani)
 
 #celkova spotreba(jen co piji) 
-boxplot(omezovani_index ~ celk_spotr_filtr_5kat,data = data_omezovani)
+boxplot(omezovani_index_sum ~ celk_spotr_filtr_5kat,data = data_omezovani)
+boxplot(omezovani_index_mea ~ celk_spotr_filtr_5kat,data = data_omezovani)
 
+
+#regrese - pohlavi, vek, prijem
+library(performance)
+library(parameters)
+
+m1_omez = lm(omezovani_index_mea ~ vzd4 + nQ88_r1 + ea2 + tQ108_10_1, data = data_omezovani)
+summary(m1_omez)
+parameters(m1_omez)
+check_model(m1_omez, check = c("linearity", "homogeneity", "normality"))
 
 # Jaké strategie občané ČR využívají v oblasti kontrolovaného omez --------
 
