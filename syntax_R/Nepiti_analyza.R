@@ -1,6 +1,7 @@
 
 packages <- c("tidyverse", "haven", "DescTools", "GGally", "skimr", "dplyr",
-              "psych", "car", "FSA", "psych", "labelled", "parameters", "performance")
+              "psych", "car", "FSA", "psych", "labelled", "parameters", "performance",
+              "scales")
 purrr::walk(packages, library, character.only = TRUE)
 
 
@@ -27,26 +28,15 @@ data$vek4 <- cut(
 table(data$vek4)
 
 
-data %>%
-  filter(!is.na(nQ52_r1)) %>% 
-  count(nQ52_r1) %>%
-  mutate(procento = n / sum(n) * 100,
-         nQ52_r1 = reorder(nQ52_r1, procento)) %>%
-  ggplot(aes(x = nQ52_r1, y = procento)) +
-  geom_col(fill = basic_color) +
-  geom_text(aes(label = paste0(" ", round(procento, 0), "%")), 
-            hjust = 0.5, size = 3.5, fontface = "bold")+
-  theme_minimal() +
-  coord_flip() +
-  labs(title = "Abstinence < 3 týdny", x = "", y = "%", subtitle = paste("N = 397"))+
-  theme(legend.position = "none",
-        plot.title = element_text(size = 14, face = "bold"))
+##### prejmenovani kategorie ve vzd4
+
+table(data$vzd4)
+data$vzd4 <- fct_recode(data$vzd4,
+                        "VOŠ a VŠ" = "3 \"VOŠ, Bc. a VŠ\"")
 
 
   
 # Jak rozšířená je krátkodobá  abstinence v české společnosti? ------------
-
-
 
 
 
@@ -120,6 +110,108 @@ data %>%
   ) +
   theme(plot.title = element_text(face = "bold")) +
   scale_x_log10()
+
+
+
+#---------------------------nQ55_r1 + nQ56_r1---------------------------------#
+
+#-> rozložení odpovědí otázky nQ55_r1 (Dodržel/a jste poslední krátkodobou
+#abstinenci v původně naplánované délce?) + nQ56_r1 (Abstinujete v původně
+#naplánované délce?) -> Je třeba přepočítat na absolutní čísla, spojit odpovědi
+#a následně znovu přepočítat na procenta
+
+table(data$nQ55_r1)
+table(data$nQ56_r1)
+
+unified_levels <- c("Ano, dodržel/a jsem ji v původně naplánované délce",
+                    "Abstinoval/a jsem déle, než jsem si původně naplánoval/a",
+                    "Ne, ukončil/a jsem ji dříve",
+                    "Neměl/a jsem naplánovanou konkrétní délku")
+
+#Ano -> Ano, dodržel/a jsem ji v původně naplánované délce
+#Ne, abstinuji déle, než jsem si naplánoval/a -> Abstinoval/a jsem déle, než jsem si původně naplánoval/a
+#Nemám naplánovanou konkrétní délku -> Neměl/a jsem naplánovanou konkrétní délku
+
+data <- data %>%
+  mutate(recoded_nQ55_r1 = case_when(
+    nQ55_r1 == "Ano, dodržel/a jsem ji v původně naplánované délce" ~ unified_levels[1],
+    nQ55_r1 == "Abstinoval/a jsem déle, než jsem si původně naplánoval/a" ~ unified_levels[2],
+    nQ55_r1 == "Ne, ukončil/a jsem ji dříve" ~ unified_levels[3],
+    nQ55_r1 == "Neměl/a jsem naplánovanou konkrétní délku" ~ unified_levels[4],
+    TRUE ~ NA_character_
+  ),
+  recoded_nQ56_r1 = case_when(
+    nQ56_r1 == "Ano" ~ unified_levels[1],
+    nQ56_r1 == "Ne, abstinuji déle, než jsem si naplánoval/a" ~ unified_levels[2],
+    nQ56_r1 == "Nemám naplánovanou konkrétní délku" ~ unified_levels[4], 
+    TRUE ~ NA_character_
+  ),
+  nQ55_56_r1 = coalesce(recoded_nQ55_r1, recoded_nQ56_r1),
+  nQ55_56_r1 = factor(nQ55_56_r1, levels = unified_levels)
+  ) %>%
+  select(-recoded_nQ55_r1, -recoded_nQ56_r1)
+
+##spojena delka abstinence
+table(data$nQ55_56_r1) 
+
+data %>%
+  filter(!is.na(nQ55_56_r1)) %>%
+  count(nQ55_56_r1) %>%
+  mutate(perc = n / sum(n) * 100)
+
+##% + CI
+tabulka <- table(data$nQ55_56_r1)
+n <- sum(tabulka)
+
+
+vysledky <- data.frame(
+  Odpoved = character(),
+  Pocet = integer(),
+  Podil = numeric(),
+  CI_dolni = numeric(),
+  CI_horni = numeric(),
+  stringsAsFactors = FALSE
+)
+
+for (odpoved in names(tabulka)) {
+  x <- tabulka[odpoved]
+  test <- binom.test(x, n, conf.level = 0.95)
+  
+  vysledky <- rbind(vysledky, data.frame(
+    Odpoved = odpoved,
+    Pocet = x,
+    Podil = x / n,
+    CI_dolni = test$conf.int[1],
+    CI_horni = test$conf.int[2]
+  ))
+}
+
+
+vysledky <- vysledky %>%
+  mutate(
+    Podil_pct = Podil * 100,
+    CI_dolni_pct = CI_dolni * 100,
+    CI_horni_pct = CI_horni * 100
+  ) %>%
+  arrange(desc(Podil_pct)) %>%
+  mutate(Odpoved = factor(Odpoved, levels = rev(Odpoved)))  
+
+vysledky
+
+
+ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
+  geom_col(fill = "#D9A939", width = 0.8) +
+  geom_errorbar(aes(ymin = CI_dolni_pct, ymax = CI_horni_pct), width = 0.2, alpha = 0.5) +
+  geom_text(aes(label = paste0(round(Podil_pct, 0), " %")), 
+            hjust = 0.25, size = 3.5, fontface = "bold") +
+  labs(title = "Dodržení délky abstinence", x = "", y = "%", subtitle = paste0("N = ", n)) +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold"),
+        panel.grid.major.y = element_blank(),
+        axis.text.y = element_text(size = 9)) +
+  coord_flip() +
+  ylim(0, max(vysledky$CI_horni_pct)+5)
+
 
 
 # V jakých částech společnosti je krátkodobá/dlouhodobá abstinence --------
@@ -905,134 +997,126 @@ data %>%
 
 # Jaké jsou osobní důvody (motivace) občanů ČR ke krátkodobé absti --------
 
-#---------------rekodovani promennych v duvodech/motivacich--------------------#
-# 0 - 1 = 1, 2 - 3 = 2, 4 - 6 = 3, 7 - 8 = 4, 9 - 10 = 5
-# puvodni nQ58_0_1 : nQ58_10_1 v datech zustavaji
-# nQ58_0_1_num : nQ58_10_1_num numericka verze
-# nQ58_0_1_fac : nQ58_10_1_fac faktorova verze (1 = Zcela nedůležité, 2 = Spíše nedůležité, 3 = Středně důležité, 4 = Spíše důležité, 5 = Zcela zásadní)
+table(data$nQ58_0_1, useNA = "ifany")
+levels(data$nQ58_0_1)
 
-vars <- paste0("nQ58_", 0:10, "_1")
-
-
-var_labels <- sapply(data[vars], function(x) attr(x, "label"))
-
-
-data_num <- lapply(data[vars], function(x) {
-  x <- as.character(x)
-  x[x == "Nevím"] <- NA
-  as.numeric(gsub(" =.*", "", x))
-})
-
-
-data_num <- lapply(data_num, function(x) {
-  case_when(
-    x <= 1              ~ 1,
-    x > 1 & x <= 3      ~ 2,
-    x > 3 & x <= 6      ~ 3,
-    x > 6 & x <= 8      ~ 4,
-    x > 8 & x <= 10     ~ 5,
-    TRUE                ~ NA_real_
+recode_levels <- function(x) {
+  fct_collapse(
+    x,
+    "Zcela nedůležité" = c("0 = Zcela nedůležité", "1"),
+    "2" = c("2", "3"),
+    "3" = c("4", "5", "6"),
+    "4" = c("7", "8"),
+    "Zcela zásadní" = c("9", "10 = Naprosto zásadní"),
+    "Nevím" = c("Nevím")
   )
-})
-
-
-vars_num <- paste0(vars, "_num")
-for (i in seq_along(vars)) {
-  data[[vars_num[i]]] <- data_num[[i]]
-  attr(data[[vars_num[i]]], "label") <- var_labels[[i]]
 }
 
+data_s_upr_nQ58 <- data %>%
+  mutate(across(matches("^nQ58_\\d+_1$"), recode_levels))
 
-value_labels <- c(
-  "Zcela nedůležité"    = 1,
-  "Spíše nedůležité"    = 2,
-  "Středně důležité"    = 3,
-  "Spíše důležité"      = 4,
-  "Zcela zásadní"       = 5
-)
+nQ58_battery = data_s_upr_nQ58 %>%
+  select(starts_with("nQ58"), -nQ58_0_1) %>%
+  filter(!is.na(nQ58_2_1)) %>%
+  pivot_longer(cols = everything(), names_to = "item", values_to = "value") %>%
+  count(item, value) %>%
+  left_join(data_labelled %>% 
+              select(item = variable, label) %>%
+              mutate(label = str_extract(label, "\\[.*?\\]") %>% 
+                       str_remove_all("\\[|\\]")), 
+            by = "item") %>%
+  group_by(item) %>%
+  mutate(percent = n / sum(n, na.rm = TRUE),
+         pos_freq = sum(percent[value %in% c("Zcela zásadní", "Spíše důležité")])) %>%
+  ungroup() %>%
+  mutate(
+    percent_label = percent(percent, accuracy = 1, suffix = ""),
+    percent_label = if_else(percent <= 0.05, "", percent_label),
+    label = paste("...", label, sep = ""),
+    label = fct_reorder(label, pos_freq),
+    value = fct_rev(value)
+  ) %>%
+  ggplot(aes(x = percent, y = label, fill = value, label = percent_label)) +
+  geom_col(color = "white") +
+  geom_text(position = position_stack(vjust = 0.5), size = 3) +
+  scale_x_continuous(labels = percent_format()) +
+  scale_y_discrete(labels = ~str_wrap(., width = 40)) +
+  scale_fill_manual(values = c(missing_color, rev(seq_pallet5))) +
+  guides(fill = guide_legend(reverse = TRUE, byrow = TRUE, nrow = 1)) +
+  theme_minimal() +
+  theme(legend.position = "top")+
+  labs(title = "Důvody pro rozhodnutí krátkodobě abstinovat ",
+       fill = "",
+       y = "",
+       x = "")
 
+ggsave(plot = nQ58_battery, filename = "nQ58-battery.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24, height = 14.5, scaling = 1)
+# kontrola nulařů
 
-vars_fac <- paste0(vars, "_fac")
-for (i in seq_along(vars_num)) {
-  v_num <- vars_num[i]
-  v_fac <- vars_fac[i]
-  
-  data[[v_fac]] <- factor(
-    data[[v_num]],
-    levels = 1:5,
-    labels = names(value_labels)
-  )
-  attr(data[[v_fac]], "label") <- var_labels[[i]]
-}
+kontrola_nul = data %>% 
+  filter(celk_spotr2 == 0) %>% 
+  select(celk_spotr2, nQ01_r1, starts_with("nQ13"))
 
 
 
 # Co představuje překážky během krátkodobé abstinence? --------------------
 
-#--------------------rekodovani promennych v prekazkach------------------------#
-#nQ59_0_1 : nQ59_10_1
-# 0 = 1, 1 - 3 = 2, 4 - 6 = 3, 7 - 10 = 4
-# puvodni nQ59_0_1 : nQ59_10_1 v datech zustavaji
-# nQ59_0_1_num : nQ59_10_1_num numericka verze
-# nQ59_0_1_fac : nQ59_10_1_fac faktorova verze (1 = Vůbec ne, 2 = Trochu, 3 = Do určité míry, 4 = Velmi)
+table(data$nQ59_0_1, useNA = "ifany")
+levels(data$nQ59_0_1)
 
-
-
-vars <- paste0("nQ59_", 0:10, "_1")
-
-
-var_labels <- sapply(data[vars], function(x) attr(x, "label"))
-
-
-data_num <- lapply(data[vars], function(x) {
-  x <- as.character(x)
-  x[x == "Nevím"] <- NA
-  as.numeric(gsub(" =.*", "", x))
-})
-
-
-data_num <- lapply(data_num, function(x) {
-  case_when(
-    x == 0                  ~ 1,
-    x >= 1 & x <= 3         ~ 2,
-    x >= 4 & x <= 6         ~ 3,
-    x >= 7 & x <= 10        ~ 4,
-    TRUE                    ~ NA_real_
+recode_levels_2 <- function(x) {
+  fct_collapse(
+    x,
+    "Vůbec ne" = c("0 = Vůbec"),
+    "2" = c("1","2", "3"),
+    "3" = c("4", "5", "6"),
+    "Velmi" = c("7", "8", "9", "10 = Velmi"),
+    "Nevím" = c("Nevím")
   )
-})
-
-
-
-vars_num <- paste0(vars, "_num")
-for (i in seq_along(vars)) {
-  data[[vars_num[i]]] <- data_num[[i]]
-  attr(data[[vars_num[i]]], "label") <- var_labels[[i]]
 }
 
+data_s_upr_nQ59 <- data %>%
+  mutate(across(matches("^nQ59_\\d+_1$"), recode_levels_2))
 
-value_labels <- c(
-  "Vůbec ne"    = 1,
-  "Trochu"    = 2,
-  "Do určité míry"    = 3,
-  "Velmi"      = 4)
+nQ59_battery = data_s_upr_nQ59 %>%
+  select(starts_with("nQ59")) %>%
+  filter(!is.na(nQ59_0_1)) %>%
+  pivot_longer(cols = everything(), names_to = "item", values_to = "value") %>%
+  count(item, value) %>%
+  left_join(data_labelled %>% 
+              select(item = variable, label) %>%
+              mutate(label = str_extract(label, "\\[.*?\\]") %>% 
+                       str_remove_all("\\[|\\]")), 
+            by = "item") %>%
+  group_by(item) %>%
+  mutate(percent = n / sum(n, na.rm = TRUE),
+         pos_freq = sum(percent[value %in% c("Velmi")])) %>%
+  ungroup() %>%
+  mutate(
+    percent_label = percent(percent, accuracy = 1, suffix = ""),
+    percent_label = if_else(percent <= 0.05, "", percent_label),
+    label = paste("...", label, sep = ""),
+    label = fct_reorder(label, pos_freq),
+    value = fct_rev(value)
+  ) %>%
+  ggplot(aes(x = percent, y = label, fill = value, label = percent_label)) +
+  geom_col(color = "white") +
+  geom_text(position = position_stack(vjust = 0.5), size = 3) +
+  scale_x_continuous(labels = percent_format()) +
+  scale_y_discrete(labels = ~str_wrap(., width = 40)) +
+  scale_fill_manual(values = c(missing_color, rev(seq_pallet4))) +
+  guides(fill = guide_legend(reverse = TRUE, byrow = TRUE)) +
+  theme_minimal() +
+  theme(legend.position = "top")+
+  labs(title = "Do jaké míry jste se během Vaší poslední krátkodobé abstinence potýkal/a
+s následujícími překážkami? ",
+       fill = "",
+       y = "",
+       x = "")
 
-
-vars_fac <- paste0(vars, "_fac")
-for (i in seq_along(vars_num)) {
-  v_num <- vars_num[i]
-  v_fac <- vars_fac[i]
-  
-  data[[v_fac]] <- factor(
-    data[[v_num]],
-    levels = 1:4,
-    labels = names(value_labels)
-  )
-  attr(data[[v_fac]], "label") <- var_labels[[i]]
-}
-
-table(data$nQ59_0_1)
-table(data$nQ59_0_1_num)
-table(data$nQ59_0_1_fac)
+ggsave(plot = nQ59_battery, filename = "nQ59-battery.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24, height = 15, scaling = 1)
 
 
 
