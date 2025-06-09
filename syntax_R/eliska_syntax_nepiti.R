@@ -196,3 +196,64 @@ s následujícími překážkami? ",
 
 ggsave(plot = nQ59_battery, filename = "nQ59-battery.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 24, height = 15, scaling = 1)
+
+
+# Jaké strategie k úspěšnému dodržení krátkodobé abstinence lidé h --------
+
+table(data$nQ61_0_1, useNA = "ifany")
+levels(data$nQ61_0_1)
+
+recode_levels_3 <- function(x) {
+  fct_collapse(
+    x,
+    "Vůbec nepomáhalo" = c("0 = Vůbec nepomáhalo"),
+    "2" = c("1","2", "3"),
+    "3" = c("4", "5", "6"),
+    "4" = c("7", "8", "9"),
+    "Velmi pomáhalo" = c("10 = Velmi pomáhalo"),
+    "Tuto strategii jsem nepraktikoval/a" = c("Tuto strategii jsem nepraktikoval/a"),
+    "Nevím" = c("Nevím")
+  )
+}
+
+data_s_upr_nQ61 <- data %>%
+  mutate(across(matches("^nQ61_\\d+_1$"), recode_levels_3))
+
+nQ61_battery = data_s_upr_nQ61 %>%
+  select(starts_with("nQ61")) %>%
+  filter(!is.na(nQ61_0_1)) %>%
+  pivot_longer(cols = everything(), names_to = "item", values_to = "value") %>%
+  count(item, value) %>%
+  left_join(data_labelled %>% 
+              select(item = variable, label) %>%
+              mutate(label = str_extract(label, "\\[.*?\\]") %>% 
+                       str_remove_all("\\[|\\]")), 
+            by = "item") %>%
+  group_by(item) %>%
+  mutate(percent = n / sum(n, na.rm = TRUE),
+         pos_freq = sum(percent[value %in% c("Velmi pomáhalo")])) %>%
+  ungroup() %>%
+  mutate(
+    percent_label = percent(percent, accuracy = 1, suffix = ""),
+    percent_label = if_else(percent <= 0.01, "", percent_label),
+    label = paste("...", label, sep = ""),
+    label = fct_reorder(label, pos_freq),
+    value = fct_rev(value)
+  ) %>%
+  ggplot(aes(x = percent, y = label, fill = value, label = percent_label)) +
+  geom_col(color = "white") +
+  geom_text(position = position_stack(vjust = 0.5), size = 3) +
+  scale_x_continuous(labels = percent_format()) +
+  scale_y_discrete(labels = ~str_wrap(., width = 40)) +
+  scale_fill_manual(values = c(missing_color, "#7C1F28", rev(seq_pallet5))) +
+  guides(fill = guide_legend(reverse = TRUE, byrow = TRUE, nrow = 1)) +
+  theme_minimal() +
+  theme(legend.position = "top")+
+  labs(title = "Pokud jste praktikoval/a následující strategie,
+do jaké míry Vám to pomáhalo při krátkodobé abstinenci? ",
+       fill = "",
+       y = "",
+       x = "")
+
+ggsave(plot = nQ61_battery, filename = "nQ61-battery.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
