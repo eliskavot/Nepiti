@@ -19,12 +19,13 @@ missing_color = "grey80"
 seq_pallet5 = c("#FAF0D1", "#F0C661", "#D9A939", "#B57F22", "#855A13")
 seq_pallet4 = c("#FAF0D1", "#F0C661", "#B57F22", "#855A13")
 
-# Analysis K1 K1 --------------------------------------------------------------
+# Analysis K1 jen zkousim jak na to :)))))))))) zadny vysledky tu zatim nejsou --------------------------------------------------------------
 
-nrow(data) #ukaze nam pocet pripadu
+n <- nrow(data) #ukaze nam pocet pripadu
 
 #STRATEGIE omezeni alkoholu:
 #  nQ61_0_1 - nQ61_10_1
+
 
 data %>% 
   count(nQ61_0_1)
@@ -41,6 +42,7 @@ data %>%
 table(data$nQ61_0_1, useNA = "ifany")
 levels(data$nQ61_0_1)
 
+#netusim co to je
 recode_levels_2 <- function(x) {
   fct_collapse(
     x,
@@ -49,8 +51,44 @@ recode_levels_2 <- function(x) {
     "3" = c("4", "5", "6"),
     "Velmi" = c("7", "8", "9", "10 = Velmi pomáhalo"),
     na_if(x = "Tuto strategii jsem nepraktikoval/a"),
+    "Nevím" = c("Nevím"),
+    rn
+  )
+}
+
+#nefunguje
+data_s_upr_nQ61 <- data %>%
+  mutate(across(starts_with("nQ61_"), recode_levels_2))
+
+levels(data$nQ61_0_1)
+
+# prekodovani -------------------------------------------------------------
+
+
+table(data$nQ58_0_1, useNA = "ifany")
+levels(data$nQ58_0_1)
+
+#nefunguje
+recode_levels <- function(x) {
+  fct_collapse(
+    x,
+    "Zcela nedůležité" = c("0 = Zcela nedůležité", "1"),
+    "2" = c("2", "3"),
+    "3" = c("4", "5", "6"),
+    "4" = c("7", "8"),
+    "Zcela zásadní" = c("9", "10 = Naprosto zásadní"),
     "Nevím" = c("Nevím")
   )
 }
 
-m1 <- lm(data = data, )
+# prumerne pouyzivani strategii pro cloveka --------------------------------
+
+#nefunguje
+data %>%
+  mutate(avg_strategy_use = rowMeans(select(., starts_with("nQ61"), na.rm = TRUE))) %>%
+  arrange(avg_strategy_use) %>%
+  select(celk_spotr3_5kat, avg_strategy_use)
+
+
+
+
