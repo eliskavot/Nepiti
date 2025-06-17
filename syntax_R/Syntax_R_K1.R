@@ -11,12 +11,46 @@ data <- read_sav(file = "Data/Alkohol 2025_v02.sav") %>%
 data_labelled <- generate_dictionary(data)
 
 
+# NASTAVENÍ BAREVNÝCH PALET
+
+basic_color = "#D9A939"
+missing_color = "grey80"
+
+seq_pallet5 = c("#FAF0D1", "#F0C661", "#D9A939", "#B57F22", "#855A13")
+seq_pallet4 = c("#FAF0D1", "#F0C661", "#B57F22", "#855A13")
 
 # Analysis K1 K1 --------------------------------------------------------------
+
+nrow(data) #ukaze nam pocet pripadu
+
+#STRATEGIE omezeni alkoholu:
+#  nQ61_0_1 - nQ61_10_1
 
 data %>% 
   count(nQ61_0_1)
 
-  
+data %>% 
+  mean(nQ61_0_1)
 
-?count
+describe(data$nQ61_0_1)
+
+data %>% 
+  select(starts_with("nQ61"))
+
+
+table(data$nQ61_0_1, useNA = "ifany")
+levels(data$nQ61_0_1)
+
+recode_levels_2 <- function(x) {
+  fct_collapse(
+    x,
+    "0 = Vůbec nepomáhalo" = c("0 = Vůbec"),
+    "2" = c("1","2", "3"),
+    "3" = c("4", "5", "6"),
+    "Velmi" = c("7", "8", "9", "10 = Velmi pomáhalo"),
+    na_if(x = "Tuto strategii jsem nepraktikoval/a"),
+    "Nevím" = c("Nevím")
+  )
+}
+
+m1 <- lm(data = data, )
