@@ -1356,6 +1356,149 @@ summary(m1_omez)
 parameters(m1_omez)
 check_model(m1_omez, check = c("linearity", "homogeneity", "normality"))
 
+
+
+#------------------------------ nQ77_r1 --------------------------------#
+
+table(data$nQ77_r1)
+
+data %>%
+  filter(!is.na(nQ77_r1)) %>%
+  count(nQ77_r1) %>%
+  mutate(perc = n / sum(n) * 100)
+
+##% + CI
+tabulka <- table(data$nQ77_r1)
+n <- sum(tabulka)
+
+
+vysledky <- data.frame(
+  Odpoved = character(),
+  Pocet = integer(),
+  Podil = numeric(),
+  CI_dolni = numeric(),
+  CI_horni = numeric(),
+  stringsAsFactors = FALSE
+)
+
+for (odpoved in names(tabulka)) {
+  x <- tabulka[odpoved]
+  test <- binom.test(x, n, conf.level = 0.95)
+  
+  vysledky <- rbind(vysledky, data.frame(
+    Odpoved = odpoved,
+    Pocet = x,
+    Podil = x / n,
+    CI_dolni = test$conf.int[1],
+    CI_horni = test$conf.int[2]
+  ))
+}
+
+
+vysledky <- vysledky %>%
+  mutate(
+    Podil_pct = Podil * 100,
+    CI_dolni_pct = CI_dolni * 100,
+    CI_horni_pct = CI_horni * 100
+  ) %>%
+  arrange(desc(Podil_pct)) %>%
+  mutate(Odpoved = factor(Odpoved, levels = rev(Odpoved)))  
+
+vysledky
+
+
+ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
+  geom_col(fill = "#D9A939", width = 0.8) +
+  geom_errorbar(aes(ymin = CI_dolni_pct, ymax = CI_horni_pct), width = 0.2, alpha = 0.5) +
+  geom_text(aes(label = paste0(round(Podil_pct, 0), " %")), 
+            hjust = 0.25, size = 3.5, fontface = "bold") +
+  labs(title = "Hodnocení omezování konzumace alkoholu", x = "", y = "%", subtitle = paste0("N = ", n)) +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold"),
+        panel.grid.major.y = element_blank(),
+        axis.text.y = element_text(size = 8)) +
+  coord_flip() +
+  ylim(0, max(vysledky$CI_horni_pct)+5)
+
+
+
+#------------------------------ nQ79_r1 --------------------------------#
+
+table(data$nQ79_r1)
+levels(data$nQ79_r1)
+
+data %>%
+  filter(!is.na(nQ79_r1)) %>%
+  count(nQ79_r1) %>%
+  mutate(perc = n / sum(n) * 100)
+
+##% + CI
+tabulka <- table(data$nQ79_r1)
+n <- sum(tabulka)
+
+
+vysledky <- data.frame(
+  Odpoved = character(),
+  Pocet = integer(),
+  Podil = numeric(),
+  CI_dolni = numeric(),
+  CI_horni = numeric(),
+  stringsAsFactors = FALSE
+)
+
+for (odpoved in names(tabulka)) {
+  x <- tabulka[odpoved]
+  test <- binom.test(x, n, conf.level = 0.95)
+  
+  vysledky <- rbind(vysledky, data.frame(
+    Odpoved = odpoved,
+    Pocet = x,
+    Podil = x / n,
+    CI_dolni = test$conf.int[1],
+    CI_horni = test$conf.int[2]
+  ))
+}
+
+
+vysledky <- vysledky %>%
+  mutate(
+    Podil_pct = Podil * 100,
+    CI_dolni_pct = CI_dolni * 100,
+    CI_horni_pct = CI_horni * 100
+  ) %>%
+  arrange(desc(Podil_pct)) %>%
+  mutate(Odpoved = factor(Odpoved, levels = c("Nevím / Nedokážu posoudit", "5", "4", "3", "2", "1")))  
+
+vysledky
+
+
+ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
+  geom_col(fill = "#D9A939", width = 0.8) +
+  geom_errorbar(aes(ymin = CI_dolni_pct, ymax = CI_horni_pct), width = 0.2, alpha = 0.5) +
+  geom_text(aes(label = paste0(round(Podil_pct, 0), " %")), 
+            hjust = 0.25, size = 3.5, fontface = "bold") +
+  labs(title = "Celkové hodnocení omezování konzumace alkoholu", x = "", y = "%", subtitle = paste0("N = ", n)) +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold"),
+        panel.grid.major.y = element_blank(),
+        axis.text.y = element_text(size = 9)) +
+  coord_flip() +
+  ylim(0, max(vysledky$CI_horni_pct)+5)
+
+
+
+ggplot(vysledky, aes(x = Podil_pct, y = Odpoved)) +
+  geom_point(size = 4, color = "#D9A939") +
+  geom_errorbarh(aes(xmin = CI_dolni_pct, xmax = CI_horni_pct), height = 0.2, alpha = 0.5) +
+  geom_text(aes(label = paste0(round(Podil_pct, 0), " %")), 
+            hjust = -0.2, size = 3.5) +
+  labs(title = "Celkové hodnocení omezování konzumace alkoholu", x = "%", y = "", subtitle = paste0("N = ", n)) +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold")) +
+  xlim(0, max(vysledky$CI_horni_pct)+5)
+
+
+
 # Jaké strategie občané ČR využívají v oblasti kontrolovaného omez --------
 
 
