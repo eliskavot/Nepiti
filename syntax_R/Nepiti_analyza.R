@@ -44,10 +44,15 @@ data$vzd4 <- fct_recode(data$vzd4,
 #-> medián, min, max, průměr otázky tQ54_0_0 (Jak dlouho trvala/trvá Vaše
 #poslední krátkodobá abstinence? (v týdnech))
 
+#???? Klara: heledte tahle promenna, je hodne sikma... si trochu rikam, jestli
+##            by nebylo od veci, ta odlehla pozorovani nejak poresit, pac nam 
+##            to docela zkresluje aj ten graf ne? - a prumer nam to hoodne 
+##            posouva, takze bychom meli pouzivat median pak?
 
 table(data$tQ54_0_0)
 data$tQ54_0_0[data$tQ54_0_0 == "Nevím, nedokážu spočítat"] <- NA 
 data$tQ54_0_0_num <- as.numeric(as.character(data$tQ54_0_0))
+
 
 describe(data$tQ54_0_0_num, quant=c(.25,.75)) 
 #  vars   n  mean    sd median trimmed  mad min max range  skew kurtosis   se Q0.25 Q0.75
@@ -89,8 +94,7 @@ data %>%
   theme(plot.title = element_text(face = "bold"))+
   scale_x_log10()
 
-
-
+#Klara: tohele je moooc hezkyy!
 ##s prumerem + CI
 data %>% 
   ggplot(aes(x = tQ54_0_0_num)) +
@@ -198,7 +202,7 @@ vysledky <- vysledky %>%
 
 vysledky
 
-
+#Klarka: ten errorbar tady! aaaa krasa
 ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
   geom_col(fill = "#D9A939", width = 0.8) +
   geom_errorbar(aes(ymin = CI_dolni_pct, ymax = CI_horni_pct), width = 0.2, alpha = 0.5) +
@@ -212,7 +216,19 @@ ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
   coord_flip() +
   ylim(0, max(vysledky$CI_horni_pct)+5)
 
+#Klarka: mela jsem napad pospojovat ty kategorie kdyby nam to nekde treba pomohlo
+# hihi
+#rekodovani promenne nQ51_r1 na nQ51_r1_3kat
+table(data$nQ51_r1)
 
+data$nQ51_r1 <- as.factor(data$nQ51_r1)
+
+library(forcats)
+data <- data %>%
+  mutate(nQ51_r1_3kat = fct_collapse(nQ51_r1, "Nikdy jsem nezkusil/a" = c("Nikdy jsem nezkusil/a a neplánuji to zkusit", "Nikdy jsem nezkusil/a, ale plánuji to"),
+                                     "Zkusil/a jsem jednou/vicekrat" = c("Jednou jsem zkusil/a", "Zkusil/a jsem vícekrát"),
+                                     "Krátkodobě abstinuji jednou/vícekrát ročně" = c("Krátkodobě abstinuji jednou ročně", "Krátkodobě abstinuji vícekrát ročně"))) 
+table(data$nQ51_r1_3kat)
 
 # V jakých částech společnosti je krátkodobá/dlouhodobá abstinence --------
 
@@ -473,6 +489,52 @@ data %>%
 
 
 
+#------------------------------ nQ51_r1_3kat x vzd4 --------------------------------#
+#Klarka: tohle moc nefunguje ... ale pokus bzl
+
+table(data$nQ51_r1_3kat)
+
+#crosstab: vzdelani x kratkodoba abstinence
+data %>%
+  count(vzd4, nQ51_r1_3kat) %>%
+  pivot_wider(
+    names_from = nQ51_r1_3kat,
+    values_from = n,
+    values_fill = 0)
+
+#radkova procenta
+data %>%
+  count(vzd4, nQ51_r1_3kat) %>%
+  group_by(vzd4) %>% 
+  mutate(row_percent = n/ sum(n) *100) %>%
+  select(-n) %>% 
+  pivot_wider(
+    names_from = nQ51_r1_3kat,
+    values_from = row_percent,
+    values_fill = 0)
+  
+######graf bez CI
+data %>% 
+  count(nQ51_r1_3kat, vzd4) %>% 
+  na.omit() %>%
+  group_by(vzd4) %>%
+  mutate(perc = n / sum(n)) %>% 
+  ggplot(aes(x = vzd4, y = perc, fill = nQ51_r1_3kat)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = scales::percent(perc, accuracy = 1)), 
+            position = position_fill(vjust = 0.5), 
+            size = 3, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_fill_brewer(palette = "Set3")+
+  labs(x = "", y = "", fill = "", title = "Abstinence > 3 týdny x vzdělání 4 kategorie",
+       subtitle = "N = 1022")+
+  theme(legend.position = "bottom",
+        legend.box = "horizontal",
+        legend.text = element_text(size = 8),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  guides(fill = guide_legend(nrow = 2))
 
 #------------------------------ nQ51_r1 x prijem_osob --------------------------------#
 
