@@ -1302,10 +1302,13 @@ ggsave(plot = nQ65_nQ75_battery, filename = "nQ65_nQ75_battery.png", path = "gra
   #prijem prijem_osob
   #celkova spotreba(jen co piji) celk_spotr_filtr_5kat
 
-ci_data_omez <- zpusob_omezovani %>%
+zpusob_omezovani_vzd = data %>% 
+  select(nQ65_r1, nQ67_r1, nQ69_r1, nQ71_r1, nQ73_r1, nQ75_r1, vzd4)
+
+ci_data_omez <- zpusob_omezovani_vzd %>%
   filter(!is.na(nQ65_r1),!is.na(nQ67_r1),!is.na(nQ69_r1),!is.na(nQ71_r1),
          !is.na(nQ73_r1), !is.na(vzd4)) %>% 
-  count(vzd4, nQ65_r1, nQ67_r1, nQ69_r1, nQ71_r1, nQ72_r1, nQ73_r1, nQ74_r1) %>% 
+  count(vzd4, nQ65_r1, nQ67_r1, nQ69_r1, nQ71_r1, nQ73_r1) %>% 
   group_by(vzd4) %>%
   mutate(total = sum(n)) %>%
   ungroup() %>%
@@ -1316,7 +1319,8 @@ ci_data_omez <- zpusob_omezovani %>%
          ci_upper = bt$conf.int[2]) %>%
   ungroup()
 
-ggplot(ci_data, aes(x = vzd4, y = perc, fill = nQ51_r1)) +
+#nedodelany
+ggplot(ci_data_omez, aes(x = vzd4, y = perc, fill = nQ51_r1)) +
   geom_col(position = position_dodge(width = 0.9), width = 0.9) +
   geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper),
                 position = position_dodge(width = 0.9), width = 0.2, alpha = 0.35) +
