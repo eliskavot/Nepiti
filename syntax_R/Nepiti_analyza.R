@@ -16,6 +16,7 @@ missing_color = "grey80"
 
 seq_pallet5 = c("#FAF0D1", "#F0C661", "#D9A939", "#B57F22", "#855A13")
 seq_pallet4 = c("#FAF0D1", "#F0C661", "#B57F22", "#855A13")
+seq_pallet3 = c("#FAF0D1", "#F0C661", "#B57F22")
 
 ##### tvorba veku se 4 kategoriemi 
 
@@ -1252,7 +1253,44 @@ ggsave(plot = nQ61_battery, filename = "nQ61-battery.png", path = "grafy",
 #způsoby omezování alkoholu
   #nQ65_r1 nQ67_r1 nQ69_r1 nQ71_r1 nQ72_r1 nQ73_r1 nQ74_r1
 
+zpusob_omezovani = data %>% 
+  select(nQ65_r1, nQ67_r1, nQ69_r1, nQ71_r1, nQ73_r1, nQ75_r1)
 
+nQ65_nQ75_battery = zpusob_omezovani %>% 
+  pivot_longer(cols = everything(), names_to = "item", values_to = "value") %>%
+  count(item, value) %>%
+  left_join(data_labelled %>% 
+              select(item = variable, label) %>%
+              mutate(label = str_extract(label, "\\[.*?\\]") %>% 
+                       str_remove_all("\\[|\\]")), 
+            by = "item") %>%
+  group_by(item) %>%
+  mutate(percent = n / sum(n, na.rm = TRUE),
+         pos_freq = sum(percent[value %in% c("Velmi pomáhalo")])) %>%
+  ungroup() %>%
+  mutate(percent_label = percent(percent, accuracy = 1, suffix = ""),
+         percent_label = if_else(percent <= 0.01, "", percent_label),
+         label = paste("...", label, sep = ""),
+         label = fct_reorder(label, pos_freq),
+         value = fct_rev(value)) %>%
+  ggplot(aes(x = percent, y = label, fill = value, label = percent_label)) +
+  geom_col(color = "white") +
+  geom_text(position = position_stack(vjust = 0.5), size = 3) +
+  scale_x_continuous(labels = percent_format()) +
+  scale_y_discrete(labels = ~str_wrap(., width = 40)) +
+  scale_fill_manual(values = c(missing_color, rev(seq_pallet3))) +
+  guides(fill = guide_legend(reverse = TRUE, byrow = TRUE, nrow = 1)) +
+  theme_minimal() +
+  theme(legend.position = "top")+
+  labs(title = "",
+       fill = "",
+       y = "",
+       x = "")
+
+ggsave(plot = nQ65_nQ75_battery, filename = "nQ65_nQ75_battery.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
+
+  
 #PODLE DEMOGRAFIK
 
 #demografika
@@ -1264,8 +1302,39 @@ ggsave(plot = nQ61_battery, filename = "nQ61-battery.png", path = "grafy",
   #prijem prijem_osob
   #celkova spotreba(jen co piji) celk_spotr_filtr_5kat
 
-zpusob_omezovani = data %>% 
-  select(nQ65_r1, nQ67_r1, nQ69_r1, nQ71_r1, nQ73_r1, nQ75_r1)
+ci_data_omez <- zpusob_omezovani %>%
+  filter(!is.na(nQ65_r1),!is.na(nQ67_r1),!is.na(nQ69_r1),!is.na(nQ71_r1),
+         !is.na(nQ73_r1), !is.na(vzd4)) %>% 
+  count(vzd4, nQ65_r1, nQ67_r1, nQ69_r1, nQ71_r1, nQ72_r1, nQ73_r1, nQ74_r1) %>% 
+  group_by(vzd4) %>%
+  mutate(total = sum(n)) %>%
+  ungroup() %>%
+  mutate(perc = n / total) %>%
+  rowwise() %>%
+  mutate(bt = list(binom.test(n, total, conf.level = 0.95)),
+         ci_lower = bt$conf.int[1],
+         ci_upper = bt$conf.int[2]) %>%
+  ungroup()
+
+ggplot(ci_data, aes(x = vzd4, y = perc, fill = nQ51_r1)) +
+  geom_col(position = position_dodge(width = 0.9), width = 0.9) +
+  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper),
+                position = position_dodge(width = 0.9), width = 0.2, alpha = 0.35) +
+  geom_text(aes(label = scales::percent(perc, accuracy = 1)),
+            position = position_dodge(width = 0.9), vjust = -0.5, size = 3) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, NA)) +
+  scale_fill_brewer(palette = "Set3") +
+  labs(
+    x = "", y = "",
+    fill = "",
+    title = "",
+    subtitle = "" ) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 0, hjust = 0.5),
+        legend.text = element_text(size = 8),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())
 
 #vzdělání 4 kategorie
 data %>% 
@@ -1409,6 +1478,7 @@ boxplot(omezovani_index_sum ~ celk_spotr_filtr_5kat,data = data_omezovani)
 boxplot(omezovani_index_mea ~ celk_spotr_filtr_5kat,data = data_omezovani)
 
 
+
 #regrese - pohlavi, vek, prijem
 library(performance)
 library(parameters)
@@ -1421,6 +1491,8 @@ check_model(m1_omez, check = c("linearity", "homogeneity", "normality"))
 
 
 #------------------------------ nQ77_r1 --------------------------------#
+#Jak u sebe z dlouhodobého pohledu hodnotíte úspěšnost takovéhoto omezování
+#konzumace alkoholu bez úplné abstinence
 
 table(data$nQ77_r1)
 
@@ -1485,6 +1557,7 @@ ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
 
 
 #------------------------------ nQ79_r1 --------------------------------#
+#Ohodnoťte, jak se vám celkově daří omezovat konzumaci alkoholu známkou jako ve škole
 
 table(data$nQ79_r1)
 levels(data$nQ79_r1)
