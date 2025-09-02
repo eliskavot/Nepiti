@@ -40,6 +40,70 @@ data$vzd4 <- fct_recode(data$vzd4,
 # Jak rozšířená je krátkodobá  abstinence v české společnosti? ------------
 
 
+#--------------------------------nQ51_r1--------------------------------------#
+#jednoduche trideni
+
+table(data$nQ51_r1) 
+
+data %>%
+  filter(!is.na(nQ51_r1)) %>%
+  count(nQ51_r1) %>%
+  mutate(perc = n / sum(n) * 100)
+
+##% + CI
+tabulka <- table(data$nQ51_r1)
+n <- sum(tabulka)
+
+
+vysledky <- data.frame(
+  Odpoved = character(),
+  Pocet = integer(),
+  Podil = numeric(),
+  CI_dolni = numeric(),
+  CI_horni = numeric(),
+  stringsAsFactors = FALSE
+)
+
+for (odpoved in names(tabulka)) {
+  x <- tabulka[odpoved]
+  test <- binom.test(x, n, conf.level = 0.95)
+  
+  vysledky <- rbind(vysledky, data.frame(
+    Odpoved = odpoved,
+    Pocet = x,
+    Podil = x / n,
+    CI_dolni = test$conf.int[1],
+    CI_horni = test$conf.int[2]
+  ))
+}
+
+
+vysledky <- vysledky %>%
+  mutate(
+    Podil_pct = Podil * 100,
+    CI_dolni_pct = CI_dolni * 100,
+    CI_horni_pct = CI_horni * 100
+  ) %>%
+  arrange(desc(Podil_pct)) %>%
+  mutate(Odpoved = factor(Odpoved, levels = rev(Odpoved)))  
+
+vysledky
+
+
+ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
+  geom_col(fill = "#D9A939", width = 0.8) +
+  geom_errorbar(aes(ymin = CI_dolni_pct, ymax = CI_horni_pct), width = 0.2, alpha = 0.5) +
+  geom_text(aes(label = paste0(round(Podil_pct, 0), " %")), 
+            hjust = 0.25, size = 3.5, fontface = "bold") +
+  labs(title = "Zkušenost s krátkodobou abstinencí (delší než 3 týdny)", x = "", y = "%", subtitle = paste0("N = ", n)) +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold"),
+        panel.grid.major.y = element_blank(),
+        axis.text.y = element_text(size = 9)) +
+  coord_flip() +
+  ylim(0, max(vysledky$CI_horni_pct)+5)
+
+
 
 #--------------------------------tQ54_0_0--------------------------------------#
 #-> medián, min, max, průměr otázky tQ54_0_0 (Jak dlouho trvala/trvá Vaše
@@ -49,6 +113,8 @@ data$vzd4 <- fct_recode(data$vzd4,
 ##            by nebylo od veci, ta odlehla pozorovani nejak poresit, pac nam 
 ##            to docela zkresluje aj ten graf ne? - a prumer nam to hoodne 
 ##            posouva, takze bychom meli pouzivat median pak?
+
+## M: co to zkusit kategorizovat tedy?
 
 table(data$tQ54_0_0)
 data$tQ54_0_0[data$tQ54_0_0 == "Nevím, nedokážu spočítat"] <- NA 
@@ -116,6 +182,98 @@ data %>%
   theme(plot.title = element_text(face = "bold")) +
   scale_x_log10()
 
+
+
+
+
+##navrh kategorizace
+
+char_values <- as.character(data$tQ54_0_0)
+
+numeric_values <- suppressWarnings(as.numeric(char_values))
+
+tQ54_0_0_kat <- cut(numeric_values,
+                    breaks = c(-Inf, 3, 7, 23, Inf),
+                    labels = c("Méně než jeden měsíc",
+                               "<1–2) měsíce",
+                               "<2–6) měsíců",
+                               "Půl roku a více"))
+
+tQ54_0_0_kat <- as.character(tQ54_0_0_kat)
+
+tQ54_0_0_kat[char_values == "Nevím, nedokážu spočítat"] <- "Nevím, nedokážu spočítat"
+
+tQ54_0_0_kat[is.na(tQ54_0_0_kat)] <- NA
+
+data$tQ54_0_0_kat <- factor(tQ54_0_0_kat,
+                            levels = c("Méně než jeden měsíc",
+                                       "<1–2) měsíce",
+                                       "<2–6) měsíců",
+                                       "Půl roku a více",
+                                       "Nevím, nedokážu spočítat"))
+
+table(data$tQ54_0_0_kat)
+
+data %>%
+  filter(!is.na(tQ54_0_0_kat)) %>%
+  count(tQ54_0_0_kat) %>%
+  mutate(perc = n / sum(n) * 100)
+
+##% + CI
+tabulka <- table(data$tQ54_0_0_kat)
+n <- sum(tabulka)
+
+
+vysledky <- data.frame(
+  Odpoved = character(),
+  Pocet = integer(),
+  Podil = numeric(),
+  CI_dolni = numeric(),
+  CI_horni = numeric(),
+  stringsAsFactors = FALSE
+)
+
+for (odpoved in names(tabulka)) {
+  x <- tabulka[odpoved]
+  test <- binom.test(x, n, conf.level = 0.95)
+  
+  vysledky <- rbind(vysledky, data.frame(
+    Odpoved = odpoved,
+    Pocet = x,
+    Podil = x / n,
+    CI_dolni = test$conf.int[1],
+    CI_horni = test$conf.int[2]
+  ))
+}
+
+
+vysledky <- vysledky %>%
+  mutate(
+    Podil_pct = Podil * 100,
+    CI_dolni_pct = CI_dolni * 100,
+    CI_horni_pct = CI_horni * 100
+  ) %>%
+  arrange(desc(Podil_pct)) %>%
+  mutate(Odpoved = factor(Odpoved, levels = rev(Odpoved)))  
+
+vysledky
+
+
+tQ54_0_0_cat = ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
+  geom_col(fill = "#D9A939", width = 0.8) +
+  geom_errorbar(aes(ymin = CI_dolni_pct, ymax = CI_horni_pct), width = 0.2, alpha = 0.5) +
+  geom_text(aes(label = paste0(round(Podil_pct, 0), " %")), 
+            hjust = 0.25, size = 3.5, fontface = "bold") +
+  labs(title = "Jak dlouho trvala/trvá poslední abstinence", x = "", y = "%", subtitle = paste0("N = ", n)) +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold"),
+        panel.grid.major.y = element_blank(),
+        axis.text.y = element_text(size = 8)) +
+  coord_flip() +
+  ylim(0, max(vysledky$CI_horni_pct)+5)
+
+ggsave(plot = tQ54_0_0_cat, filename = "tQ54_0_0_cat.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
 
 
 #---------------------------nQ55_r1 + nQ56_r1---------------------------------#
@@ -1055,6 +1213,654 @@ data %>%
 
 # Má krátkodobá abstinence efekt na snižování míry konzumace alkoh --------
 
+#--------------------------------nQ63_r1--------------------------------------#
+
+table(data$nQ63_r1) 
+
+data %>%
+  filter(!is.na(nQ63_r1)) %>%
+  count(nQ63_r1) %>%
+  mutate(perc = n / sum(n) * 100)
+
+##% + CI
+tabulka <- table(data$nQ63_r1)
+n <- sum(tabulka)
+
+
+vysledky <- data.frame(
+  Odpoved = character(),
+  Pocet = integer(),
+  Podil = numeric(),
+  CI_dolni = numeric(),
+  CI_horni = numeric(),
+  stringsAsFactors = FALSE
+)
+
+for (odpoved in names(tabulka)) {
+  x <- tabulka[odpoved]
+  test <- binom.test(x, n, conf.level = 0.95)
+  
+  vysledky <- rbind(vysledky, data.frame(
+    Odpoved = odpoved,
+    Pocet = x,
+    Podil = x / n,
+    CI_dolni = test$conf.int[1],
+    CI_horni = test$conf.int[2]
+  ))
+}
+
+
+vysledky <- vysledky %>%
+  mutate(
+    Podil_pct = Podil * 100,
+    CI_dolni_pct = CI_dolni * 100,
+    CI_horni_pct = CI_horni * 100
+  ) %>%
+  arrange(desc(Podil_pct)) %>%
+  mutate(Odpoved = factor(Odpoved, levels = rev(Odpoved)))  
+
+vysledky
+
+
+nQ63_r1 = ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
+  geom_col(fill = "#D9A939", width = 0.8) +
+  geom_errorbar(aes(ymin = CI_dolni_pct, ymax = CI_horni_pct), width = 0.2, alpha = 0.5) +
+  geom_text(aes(label = paste0(round(Podil_pct, 0), " %")), 
+            hjust = 0.25, size = 3.5, fontface = "bold") +
+  labs(title = "Pití po krátkodobé abstinenci", x = "", y = "%", subtitle = paste0("N = ", n)) +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold"),
+        panel.grid.major.y = element_blank(),
+        axis.text.y = element_text(size = 9)) +
+  coord_flip() +
+  ylim(0, max(vysledky$CI_horni_pct)+5)
+
+ggsave(plot = nQ63_r1, filename = "nQ63_r1.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
+
+
+#----------------------------nQ63_r1 x vzd4----------------------------------#
+
+##### tabulka s N a %
+tabulka <- table(data$nQ63_r1, data$vzd4)
+tabulka
+round(prop.table(tabulka, margin = 2) *100, 0)
+
+
+##### tabulka s % a CI
+
+ci_vysledky <- list()
+
+for (col in 1:ncol(tabulka)) {
+  total <- sum(tabulka[, col])  
+  ci_mat <- matrix(nrow = nrow(tabulka), ncol = 3)
+  rownames(ci_mat) <- rownames(tabulka)
+  
+  for (row in 1:nrow(tabulka)) {
+    success <- tabulka[row, col]
+    ci <- BinomCI(success, total, conf.level = 0.95, method = "wilson")
+    ci_mat[row, ] <- ci  # sloupce: estimate, lower, upper
+  }
+  
+  ci_vysledky[[colnames(tabulka)[col]]] <- ci_mat
+}
+
+for (cat in names(ci_vysledky)) {
+  cat("\nVzdělání:", cat, "\n")
+  df <- ci_vysledky[[cat]]
+  for (i in 1:nrow(df)) {
+    cat(rownames(df)[i], 
+        "- %:", round(df[i, 1] * 100, 1),
+        " | 95% CI:", 
+        paste0(round(df[i, 2:3] * 100, 1), collapse = " – "), "\n")
+  }
+}
+
+
+###### X2
+chisq_result <- chisq.test(tabulka) 
+chisq_result$stdres 
+p_value <- chisq_result$p.value
+print(p_value) 
+chisq_value <- chisq_result$statistic
+print(chisq_value) 
+CramerV(tabulka)
+## p value = <0,001
+
+
+
+
+
+#####graf s CI
+ci_data <- data %>%
+  filter(!is.na(nQ63_r1), !is.na(vzd4)) %>%
+  count(vzd4, nQ63_r1) %>%
+  group_by(vzd4) %>%
+  mutate(total = sum(n)) %>%
+  ungroup() %>%
+  mutate(perc = n / total) %>%
+  rowwise() %>%
+  mutate(
+    bt = list(binom.test(n, total, conf.level = 0.95)),
+    ci_lower = bt$conf.int[1],
+    ci_upper = bt$conf.int[2]
+  ) %>%
+  ungroup()
+
+nQ63_r1_vzd4 = ggplot(ci_data, aes(x = vzd4, y = perc, fill = nQ63_r1)) +
+  geom_col(position = position_dodge(width = 0.9), width = 0.9) +
+  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper),
+                position = position_dodge(width = 0.9), width = 0.2, alpha = 0.35) +
+  geom_text(aes(label = scales::percent(perc, accuracy = 1)),
+            position = position_dodge(width = 0.9), vjust = -0.5, size = 3) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, NA)) +
+  scale_fill_brewer(palette = "Set3") +
+  labs(
+    x = "", y = "",
+    fill = "",
+    title = "Pití po krátkodobé abstinenci dle vzdělání",
+    subtitle = paste0("N = ", n)
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 0, hjust = 0.5, size = 9),
+        legend.text = element_text(size = 8),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())+
+  guides(fill = guide_legend(nrow = 2))
+
+ggsave(plot = nQ63_r1_vzd4, filename = "nQ63_r1 x vzd4.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
+
+######graf bez CI
+data %>% 
+  count(nQ63_r1, vzd4) %>% 
+  na.omit() %>%
+  group_by(vzd4) %>%
+  mutate(perc = n / sum(n)) %>% 
+  ggplot(aes(x = vzd4, y = perc, fill = nQ63_r1)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = scales::percent(perc, accuracy = 1)), 
+            position = position_fill(vjust = 0.5), 
+            size = 3, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_fill_brewer(palette = "Set3")+
+  labs(x = "", y = "", fill = "", title = "Pití po krátkodobé abstinenci dle vzdělání",
+       subtitle = paste0("N = ", n))+
+  theme(legend.position = "bottom",
+        legend.box = "horizontal",
+        legend.text = element_text(size = 8),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  guides(fill = guide_legend(nrow = 2))
+
+
+#----------------------------nQ63_r1 x prijem_osob----------------------------------#
+
+##### tabulka s N a %
+tabulka <- table(data$nQ63_r1, data$prijem_osob)
+tabulka
+round(prop.table(tabulka, margin = 2) *100, 0)
+
+
+##### tabulka s % a CI
+
+ci_vysledky <- list()
+
+for (col in 1:ncol(tabulka)) {
+  total <- sum(tabulka[, col])  
+  ci_mat <- matrix(nrow = nrow(tabulka), ncol = 3)
+  rownames(ci_mat) <- rownames(tabulka)
+  
+  for (row in 1:nrow(tabulka)) {
+    success <- tabulka[row, col]
+    ci <- BinomCI(success, total, conf.level = 0.95, method = "wilson")
+    ci_mat[row, ] <- ci  # sloupce: estimate, lower, upper
+  }
+  
+  ci_vysledky[[colnames(tabulka)[col]]] <- ci_mat
+}
+
+for (cat in names(ci_vysledky)) {
+  cat("\nVzdělání:", cat, "\n")
+  df <- ci_vysledky[[cat]]
+  for (i in 1:nrow(df)) {
+    cat(rownames(df)[i], 
+        "- %:", round(df[i, 1] * 100, 1),
+        " | 95% CI:", 
+        paste0(round(df[i, 2:3] * 100, 1), collapse = " – "), "\n")
+  }
+}
+
+
+###### X2
+chisq_result <- chisq.test(tabulka) 
+chisq_result$stdres 
+p_value <- chisq_result$p.value
+print(p_value) 
+chisq_value <- chisq_result$statistic
+print(chisq_value) 
+CramerV(tabulka)
+## p value = <0,001
+
+
+
+
+
+#####graf s CI
+ci_data <- data %>%
+  filter(!is.na(nQ63_r1), !is.na(prijem_osob)) %>%
+  count(prijem_osob, nQ63_r1) %>%
+  group_by(prijem_osob) %>%
+  mutate(total = sum(n)) %>%
+  ungroup() %>%
+  mutate(perc = n / total) %>%
+  rowwise() %>%
+  mutate(
+    bt = list(binom.test(n, total, conf.level = 0.95)),
+    ci_lower = bt$conf.int[1],
+    ci_upper = bt$conf.int[2]
+  ) %>%
+  ungroup()
+
+nQ63_r1_prijem = ggplot(ci_data, aes(x = prijem_osob, y = perc, fill = nQ63_r1)) +
+  geom_col(position = position_dodge(width = 0.9), width = 0.9) +
+  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper),
+                position = position_dodge(width = 0.9), width = 0.2, alpha = 0.35) +
+  geom_text(aes(label = scales::percent(perc, accuracy = 1)),
+            position = position_dodge(width = 0.9), vjust = -0.5, size = 3) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, NA)) +
+  scale_fill_brewer(palette = "Set3") +
+  labs(
+    x = "", y = "",
+    fill = "",
+    title = "Pití po krátkodobé abstinenci dle příjmu",
+    subtitle = paste0("N = ", n)
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 0, hjust = 0.5, size = 9),
+        legend.text = element_text(size = 8),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())+
+  guides(fill = guide_legend(nrow = 2))
+
+ggsave(plot = nQ63_r1_prijem, filename = "nQ63_r1 x prijem_osob.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
+
+######graf bez CI
+data %>% 
+  count(nQ63_r1, prijem_osob) %>% 
+  na.omit() %>%
+  group_by(prijem_osob) %>%
+  mutate(perc = n / sum(n)) %>% 
+  ggplot(aes(x = prijem_osob, y = perc, fill = nQ63_r1)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = scales::percent(perc, accuracy = 1)), 
+            position = position_fill(vjust = 0.5), 
+            size = 3, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_fill_brewer(palette = "Set3")+
+  labs(x = "", y = "", fill = "", title = "Pití po krátkodobé abstinenci dle příjmu",
+       subtitle = paste0("N = ", n))+
+  theme(legend.position = "bottom",
+        legend.box = "horizontal",
+        legend.text = element_text(size = 8),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  guides(fill = guide_legend(nrow = 2))
+
+#----------------------------nQ63_r1 x vek4----------------------------------#
+
+##### tabulka s N a %
+tabulka <- table(data$nQ63_r1, data$vek4)
+tabulka
+round(prop.table(tabulka, margin = 2) *100, 0)
+
+
+##### tabulka s % a CI
+
+ci_vysledky <- list()
+
+for (col in 1:ncol(tabulka)) {
+  total <- sum(tabulka[, col])  
+  ci_mat <- matrix(nrow = nrow(tabulka), ncol = 3)
+  rownames(ci_mat) <- rownames(tabulka)
+  
+  for (row in 1:nrow(tabulka)) {
+    success <- tabulka[row, col]
+    ci <- BinomCI(success, total, conf.level = 0.95, method = "wilson")
+    ci_mat[row, ] <- ci  # sloupce: estimate, lower, upper
+  }
+  
+  ci_vysledky[[colnames(tabulka)[col]]] <- ci_mat
+}
+
+for (cat in names(ci_vysledky)) {
+  cat("\nVzdělání:", cat, "\n")
+  df <- ci_vysledky[[cat]]
+  for (i in 1:nrow(df)) {
+    cat(rownames(df)[i], 
+        "- %:", round(df[i, 1] * 100, 1),
+        " | 95% CI:", 
+        paste0(round(df[i, 2:3] * 100, 1), collapse = " – "), "\n")
+  }
+}
+
+
+###### X2
+chisq_result <- chisq.test(tabulka) 
+chisq_result$stdres 
+p_value <- chisq_result$p.value
+print(p_value) 
+chisq_value <- chisq_result$statistic
+print(chisq_value) 
+CramerV(tabulka)
+## p value = <0,001
+
+
+
+
+
+#####graf s CI
+ci_data <- data %>%
+  filter(!is.na(nQ63_r1), !is.na(vek4)) %>%
+  count(vek4, nQ63_r1) %>%
+  group_by(vek4) %>%
+  mutate(total = sum(n)) %>%
+  ungroup() %>%
+  mutate(perc = n / total) %>%
+  rowwise() %>%
+  mutate(
+    bt = list(binom.test(n, total, conf.level = 0.95)),
+    ci_lower = bt$conf.int[1],
+    ci_upper = bt$conf.int[2]
+  ) %>%
+  ungroup()
+
+nQ63_r1_vek4 = ggplot(ci_data, aes(x = vek4, y = perc, fill = nQ63_r1)) +
+  geom_col(position = position_dodge(width = 0.9), width = 0.9) +
+  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper),
+                position = position_dodge(width = 0.9), width = 0.2, alpha = 0.35) +
+  geom_text(aes(label = scales::percent(perc, accuracy = 1)),
+            position = position_dodge(width = 0.9), vjust = -0.5, size = 3) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, NA)) +
+  scale_fill_brewer(palette = "Set3") +
+  labs(
+    x = "", y = "",
+    fill = "",
+    title = "Pití po krátkodobé abstinenci dle věku",
+    subtitle = paste0("N = ", n)
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 0, hjust = 0.5, size = 9),
+        legend.text = element_text(size = 8),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())+
+  guides(fill = guide_legend(nrow = 2))
+
+ggsave(plot = nQ63_r1_vek4, filename = "nQ63_r1 x vek4.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
+
+######graf bez CI
+data %>% 
+  count(nQ63_r1, vek4) %>% 
+  na.omit() %>%
+  group_by(vek4) %>%
+  mutate(perc = n / sum(n)) %>% 
+  ggplot(aes(x = vek4, y = perc, fill = nQ63_r1)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = scales::percent(perc, accuracy = 1)), 
+            position = position_fill(vjust = 0.5), 
+            size = 3, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_fill_brewer(palette = "Set3")+
+  labs(x = "", y = "", fill = "", title = "Pití po krátkodobé abstinenci dle věku",
+       subtitle = paste0("N = ", n))+
+  theme(legend.position = "bottom",
+        legend.box = "horizontal",
+        legend.text = element_text(size = 8),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  guides(fill = guide_legend(nrow = 2))
+
+#----------------------------nQ63_r1 x pohlavi----------------------------------#
+
+##### tabulka s N a %
+tabulka <- table(data$nQ63_r1, data$nQ88_r1)
+tabulka
+round(prop.table(tabulka, margin = 2) *100, 0)
+
+
+##### tabulka s % a CI
+
+ci_vysledky <- list()
+
+for (col in 1:ncol(tabulka)) {
+  total <- sum(tabulka[, col])  
+  ci_mat <- matrix(nrow = nrow(tabulka), ncol = 3)
+  rownames(ci_mat) <- rownames(tabulka)
+  
+  for (row in 1:nrow(tabulka)) {
+    success <- tabulka[row, col]
+    ci <- BinomCI(success, total, conf.level = 0.95, method = "wilson")
+    ci_mat[row, ] <- ci  # sloupce: estimate, lower, upper
+  }
+  
+  ci_vysledky[[colnames(tabulka)[col]]] <- ci_mat
+}
+
+for (cat in names(ci_vysledky)) {
+  cat("\nVzdělání:", cat, "\n")
+  df <- ci_vysledky[[cat]]
+  for (i in 1:nrow(df)) {
+    cat(rownames(df)[i], 
+        "- %:", round(df[i, 1] * 100, 1),
+        " | 95% CI:", 
+        paste0(round(df[i, 2:3] * 100, 1), collapse = " – "), "\n")
+  }
+}
+
+
+###### X2
+chisq_result <- chisq.test(tabulka) 
+chisq_result$stdres 
+p_value <- chisq_result$p.value
+print(p_value) 
+chisq_value <- chisq_result$statistic
+print(chisq_value) 
+CramerV(tabulka)
+## p value = <0,001
+
+
+
+
+
+#####graf s CI
+ci_data <- data %>%
+  filter(!is.na(nQ63_r1), !is.na(nQ88_r1)) %>%
+  count(nQ88_r1, nQ63_r1) %>%
+  group_by(nQ88_r1) %>%
+  mutate(total = sum(n)) %>%
+  ungroup() %>%
+  mutate(perc = n / total) %>%
+  rowwise() %>%
+  mutate(
+    bt = list(binom.test(n, total, conf.level = 0.95)),
+    ci_lower = bt$conf.int[1],
+    ci_upper = bt$conf.int[2]
+  ) %>%
+  ungroup()
+
+nQ63_r1_pohlavi = ggplot(ci_data, aes(x = nQ88_r1, y = perc, fill = nQ63_r1)) +
+  geom_col(position = position_dodge(width = 0.9), width = 0.9) +
+  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper),
+                position = position_dodge(width = 0.9), width = 0.2, alpha = 0.35) +
+  geom_text(aes(label = scales::percent(perc, accuracy = 1)),
+            position = position_dodge(width = 0.9), vjust = -0.5, size = 3) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, NA)) +
+  scale_fill_brewer(palette = "Set3") +
+  labs(
+    x = "", y = "",
+    fill = "",
+    title = "Pití po krátkodobé abstinenci dle pohlaví",
+    subtitle = paste0("N = ", n)
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 0, hjust = 0.5, size = 9),
+        legend.text = element_text(size = 8),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())+
+  guides(fill = guide_legend(nrow = 2))
+
+ggsave(plot = nQ63_r1_pohlavi, filename = "nQ63_r1 x pohlavi.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
+
+######graf bez CI
+data %>% 
+  count(nQ63_r1, nQ88_r1) %>% 
+  na.omit() %>%
+  group_by(nQ88_r1) %>%
+  mutate(perc = n / sum(n)) %>% 
+  ggplot(aes(x = nQ88_r1, y = perc, fill = nQ63_r1)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = scales::percent(perc, accuracy = 1)), 
+            position = position_fill(vjust = 0.5), 
+            size = 3, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_fill_brewer(palette = "Set3")+
+  labs(x = "", y = "", fill = "", title = "Pití po krátkodobé abstinenci dle pohlaví",
+       subtitle = paste0("N = ", n))+
+  theme(legend.position = "bottom",
+        legend.box = "horizontal",
+        legend.text = element_text(size = 8),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  guides(fill = guide_legend(nrow = 2))
+
+#----------------------------nQ63_r1 x celk_spotr----------------------------------#
+
+##### tabulka s N a %
+tabulka <- table(data$nQ63_r1, data$celk_spotr_filtr_5kat)
+tabulka
+round(prop.table(tabulka, margin = 2) *100, 0)
+
+
+##### tabulka s % a CI
+
+ci_vysledky <- list()
+
+for (col in 1:ncol(tabulka)) {
+  total <- sum(tabulka[, col])  
+  ci_mat <- matrix(nrow = nrow(tabulka), ncol = 3)
+  rownames(ci_mat) <- rownames(tabulka)
+  
+  for (row in 1:nrow(tabulka)) {
+    success <- tabulka[row, col]
+    ci <- BinomCI(success, total, conf.level = 0.95, method = "wilson")
+    ci_mat[row, ] <- ci  # sloupce: estimate, lower, upper
+  }
+  
+  ci_vysledky[[colnames(tabulka)[col]]] <- ci_mat
+}
+
+for (cat in names(ci_vysledky)) {
+  cat("\nVzdělání:", cat, "\n")
+  df <- ci_vysledky[[cat]]
+  for (i in 1:nrow(df)) {
+    cat(rownames(df)[i], 
+        "- %:", round(df[i, 1] * 100, 1),
+        " | 95% CI:", 
+        paste0(round(df[i, 2:3] * 100, 1), collapse = " – "), "\n")
+  }
+}
+
+
+###### X2
+chisq_result <- chisq.test(tabulka) 
+chisq_result$stdres 
+p_value <- chisq_result$p.value
+print(p_value) 
+chisq_value <- chisq_result$statistic
+print(chisq_value) 
+CramerV(tabulka)
+## p value = <0,001
+
+
+
+
+
+#####graf s CI
+ci_data <- data %>%
+  filter(!is.na(nQ63_r1), !is.na(celk_spotr_filtr_5kat)) %>%
+  count(celk_spotr_filtr_5kat, nQ63_r1) %>%
+  group_by(celk_spotr_filtr_5kat) %>%
+  mutate(total = sum(n)) %>%
+  ungroup() %>%
+  mutate(perc = n / total) %>%
+  rowwise() %>%
+  mutate(
+    bt = list(binom.test(n, total, conf.level = 0.95)),
+    ci_lower = bt$conf.int[1],
+    ci_upper = bt$conf.int[2]
+  ) %>%
+  ungroup()
+
+nQ63_r1_spotr = ggplot(ci_data, aes(x = celk_spotr_filtr_5kat, y = perc, fill = nQ63_r1)) +
+  geom_col(position = position_dodge(width = 0.9), width = 0.9) +
+  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper),
+                position = position_dodge(width = 0.9), width = 0.2, alpha = 0.35) +
+  geom_text(aes(label = scales::percent(perc, accuracy = 1)),
+            position = position_dodge(width = 0.9), vjust = -0.5, size = 3) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, NA)) +
+  scale_fill_brewer(palette = "Set3") +
+  labs(
+    x = "", y = "",
+    fill = "",
+    title = "Pití po krátkodobé abstinenci dle počtu sklenic alkoholu (za týden)",
+    subtitle = paste0("N = ", n)
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 0, hjust = 0.5, size = 9),
+        legend.text = element_text(size = 8),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank())+
+  guides(fill = guide_legend(nrow = 2))
+
+ggsave(plot = nQ63_r1_spotr, filename = "nQ63_r1 x celk_spotr.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
+
+
+######graf bez CI
+data %>% 
+  count(nQ63_r1, celk_spotr_filtr_5kat) %>% 
+  na.omit() %>%
+  group_by(celk_spotr_filtr_5kat) %>%
+  mutate(perc = n / sum(n)) %>% 
+  ggplot(aes(x = celk_spotr_filtr_5kat, y = perc, fill = nQ63_r1)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = scales::percent(perc, accuracy = 1)), 
+            position = position_fill(vjust = 0.5), 
+            size = 3, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_fill_brewer(palette = "Set3")+
+  labs(x = "", y = "", fill = "", title = "Pití po krátkodobé abstinenci dle počtu sklenic alkoholu (za týden)",
+       subtitle = paste0("N = ", n))+
+  theme(legend.position = "bottom",
+        legend.box = "horizontal",
+        legend.text = element_text(size = 8),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  guides(fill = guide_legend(nrow = 2))
+
 
 
 
@@ -1266,7 +2072,7 @@ nQ65_nQ75_battery = zpusob_omezovani %>%
             by = "item") %>%
   group_by(item) %>%
   mutate(percent = n / sum(n, na.rm = TRUE),
-         pos_freq = sum(percent[value %in% c("Velmi pomáhalo")])) %>%
+         pos_freq = sum(percent[value %in% c("Ano, vícekrát", "Ano, jednou")])) %>%
   ungroup() %>%
   mutate(percent_label = percent(percent, accuracy = 1, suffix = ""),
          percent_label = if_else(percent <= 0.01, "", percent_label),
