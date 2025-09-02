@@ -1492,7 +1492,30 @@ summary(m1_omez)
 parameters(m1_omez)
 check_model(m1_omez, check = c("linearity", "homogeneity", "normality"))
 
+#------------------------------tQ70_0_0---------------------------------#
+#zatim nefunguje
+druh_alk = data %>% 
+  select(tQ70_0_0,respondent_id_internal)
 
+install.packages("readxl")
+library(readxl)
+library(dplyr)
+library(tidyverse)
+
+Q70_kod  = read_excel("Q70_kod.xlsx")
+
+data = data %>%
+  left_join(Q70_kod %>% select(respondent_id_internal, kod_Q70), by = "respondent_id_internal")
+head(q70_kodovane)
+table(is.na(q70_kodovane$kod_Q70))
+names(codebook)
+
+druh_alk = data %>% 
+  select(tQ70_0_0,respondent_id_internal,Q70_kod)
+
+is.character(codebook$Q70_kod)
+
+names(codebook)
 
 #------------------------------ nQ77_r1 --------------------------------#
 #Jak u sebe z dlouhodobého pohledu hodnotíte úspěšnost takovéhoto omezování
