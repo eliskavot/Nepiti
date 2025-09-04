@@ -1,7 +1,7 @@
 
 packages <- c("tidyverse", "haven", "DescTools", "GGally", "skimr", "dplyr",
               "psych", "car", "FSA", "psych", "labelled", "parameters", "performance",
-              "scales")
+              "scales", "ggthemes")
 purrr::walk(packages, library, character.only = TRUE)
 
 
@@ -471,18 +471,19 @@ ci_data <- data %>%
   ) %>%
   ungroup()
 
-ggplot(ci_data, aes(x = vzd4, y = perc, fill = nQ51_r1)) +
-  geom_col(position = position_dodge(width = 0.9), width = 0.9) +
+nQ51_r1_vzd4 = ggplot(ci_data, aes(x = vzd4, y = perc, fill = nQ51_r1)) +
+  geom_col(position = position_dodge(width = 0.8), width = 0.7) +
   geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper),
-                position = position_dodge(width = 0.9), width = 0.2, alpha = 0.35) +
-  geom_text(aes(label = scales::percent(perc, accuracy = 1)),
-            position = position_dodge(width = 0.9), vjust = -0.5, size = 3) +
+                position = position_dodge(width = 0.8), width = 0.2, alpha = 0.35) +
+  geom_text(aes(label = round(perc * 100, 0)),
+            position = position_dodge(width = 0.8),
+            vjust = -0.5, size = 3)+
   scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, NA)) +
-  scale_fill_brewer(palette = "Set3") +
+  scale_fill_manual(values = tableau_color_pal("Superfishel Stone")(6)) +
   labs(
     x = "", y = "",
     fill = "",
-    title = "Abstinence > 3 týdny x vzdělání 4 kategorie",
+    title = "Zkušenost s krátkodobou abstinencí dle vzdělání",
     subtitle = "N = 1022"
   ) +
   theme_minimal() +
@@ -492,7 +493,8 @@ ggplot(ci_data, aes(x = vzd4, y = perc, fill = nQ51_r1)) +
         panel.grid.major.x = element_blank(),
         panel.grid.minor.y = element_blank())
 
-
+ggsave(plot = nQ51_r1_vzd4, filename = "nQ51_r1 x vzd4.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
 
 ######graf bez CI
 data %>% 
@@ -772,19 +774,20 @@ ci_data <- data %>%
   ) %>%
   ungroup()
 
-ggplot(ci_data, aes(x = prijem_osob, y = perc, fill = nQ51_r1)) +
-  geom_col(position = position_dodge(width = 0.9), width = 0.9) +
+nQ51_r1_prijem = ggplot(ci_data, aes(x = prijem_osob, y = perc, fill = nQ51_r1)) +
+  geom_col(position = position_dodge(width = 0.8), width = 0.7) +
   geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper),
-                position = position_dodge(width = 0.9), width = 0.2, alpha = 0.35) +
-  geom_text(aes(label = scales::percent(perc, accuracy = 1)),
-            position = position_dodge(width = 0.9), vjust = -0.5, size = 3) +
+                position = position_dodge(width = 0.8), width = 0.2, alpha = 0.35) +
+  geom_text(aes(label = round(perc * 100, 0)),
+            position = position_dodge(width = 0.8),
+            vjust = -0.5, size = 3)+
   scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, NA)) +
-  scale_fill_brewer(palette = "Set3") +
+  scale_fill_manual(values = tableau_color_pal("Superfishel Stone")(6)) +
   labs(
     x = "", y = "",
     fill = "",
-    title = "Abstinence > 3 týdny x vzdělání 3 kategorie",
-    subtitle = "N = 1022"
+    title = "Zkušenost s krátkodobou abstinencí dle příjmu",
+    subtitle = "N = 747"
   ) +
   theme_minimal() +
   theme(legend.position = "bottom",
@@ -793,7 +796,8 @@ ggplot(ci_data, aes(x = prijem_osob, y = perc, fill = nQ51_r1)) +
         panel.grid.major.x = element_blank(),
         panel.grid.minor.y = element_blank())
 
-
+ggsave(plot = nQ51_r1_prijem, filename = "nQ51_r1 x prijem_osob.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
 
 ######graf bez CI
 data %>% 
@@ -899,18 +903,19 @@ ci_data <- data %>%
   ) %>%
   ungroup()
 
-ggplot(ci_data, aes(x = celk_spotr_filtr_5kat, y = perc, fill = nQ51_r1)) +
-  geom_col(position = position_dodge(width = 0.9), width = 0.9) +
+nQ51_r1_spotr = ggplot(ci_data, aes(x = celk_spotr_filtr_5kat, y = perc, fill = nQ51_r1)) +
+  geom_col(position = position_dodge(width = 0.8), width = 0.7) +
   geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper),
-                position = position_dodge(width = 0.9), width = 0.2, alpha = 0.35) +
-  geom_text(aes(label = scales::percent(perc, accuracy = 1)),
-            position = position_dodge(width = 0.9), vjust = -0.5, size = 3) +
+                position = position_dodge(width = 0.8), width = 0.2, alpha = 0.35) +
+  geom_text(aes(label = round(perc * 100, 0)),
+            position = position_dodge(width = 0.8),
+            vjust = -0.5, size = 3)+
   scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, NA)) +
-  scale_fill_brewer(palette = "Set3") +
+  scale_fill_manual(values = tableau_color_pal("Superfishel Stone")(6)) +
   labs(
     x = "", y = "",
     fill = "",
-    title = "Abstinence > 3 týdny x počet sklenic",
+    title = "Zkušenost s krátkodobou abstinencí dle počtu sklenic alkholu (za týden)",
     subtitle = "N = 929"
   ) +
   theme_minimal() +
@@ -920,6 +925,8 @@ ggplot(ci_data, aes(x = celk_spotr_filtr_5kat, y = perc, fill = nQ51_r1)) +
         panel.grid.major.x = element_blank(),
         panel.grid.minor.y = element_blank())
 
+ggsave(plot = nQ51_r1_spotr, filename = "nQ51_r1 x celk_spotr.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
 
 
 ######graf bez CI
@@ -1024,18 +1031,19 @@ ci_data <- data %>%
   ) %>%
   ungroup()
 
-ggplot(ci_data, aes(x = nQ88_r1, y = perc, fill = nQ51_r1)) +
-  geom_col(position = position_dodge(width = 0.9), width = 0.9) +
+nQ51_r1_pohlavi = ggplot(ci_data, aes(x = nQ88_r1, y = perc, fill = nQ51_r1)) +
+  geom_col(position = position_dodge(width = 0.8), width = 0.7) +
   geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper),
-                position = position_dodge(width = 0.9), width = 0.2, alpha = 0.35) +
-  geom_text(aes(label = scales::percent(perc, accuracy = 1)),
-            position = position_dodge(width = 0.9), vjust = -0.5, size = 3) +
+                position = position_dodge(width = 0.8), width = 0.2, alpha = 0.35) +
+  geom_text(aes(label = round(perc * 100, 0)),
+            position = position_dodge(width = 0.8),
+            vjust = -0.5, size = 3)+
   scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, NA)) +
-  scale_fill_brewer(palette = "Set3") +
+  scale_fill_manual(values = tableau_color_pal("Superfishel Stone")(6)) +
   labs(
     x = "", y = "",
     fill = "",
-    title = "Abstinence > 3 týdny x pohlaví",
+    title = "Zkušenost s krátkodobou abstinencí dle pohlaví",
     subtitle = "N = 1022"
   ) +
   theme_minimal() +
@@ -1045,6 +1053,8 @@ ggplot(ci_data, aes(x = nQ88_r1, y = perc, fill = nQ51_r1)) +
         panel.grid.major.x = element_blank(),
         panel.grid.minor.y = element_blank())
 
+ggsave(plot = nQ51_r1_pohlavi, filename = "nQ51_r1 x pohlavi.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
 
 
 ######graf bez CI
@@ -1163,18 +1173,19 @@ ci_data <- data %>%
   ) %>%
   ungroup()
 
-ggplot(ci_data, aes(x = vek4, y = perc, fill = nQ51_r1)) +
-  geom_col(position = position_dodge(width = 0.9), width = 0.9) +
+nQ51_r1_vek4 = ggplot(ci_data, aes(x = vek4, y = perc, fill = nQ51_r1)) +
+  geom_col(position = position_dodge(width = 0.8), width = 0.7) +
   geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper),
-                position = position_dodge(width = 0.9), width = 0.2, alpha = 0.35) +
-  geom_text(aes(label = scales::percent(perc, accuracy = 1)),
-            position = position_dodge(width = 0.9), vjust = -0.5, size = 3) +
+                position = position_dodge(width = 0.8), width = 0.2, alpha = 0.35) +
+  geom_text(aes(label = round(perc * 100, 0)),
+            position = position_dodge(width = 0.8),
+            vjust = -0.5, size = 3)+
   scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, NA)) +
-  scale_fill_brewer(palette = "Set3") +
+  scale_fill_manual(values = tableau_color_pal("Superfishel Stone")(6)) +
   labs(
     x = "", y = "",
     fill = "",
-    title = "Abstinence > 3 týdny x věk 4 kategorie",
+    title = "Zkušenost s krátkodobou abstinencí dle věku",
     subtitle = "N = 1022"
   ) +
   theme_minimal() +
@@ -1184,7 +1195,8 @@ ggplot(ci_data, aes(x = vek4, y = perc, fill = nQ51_r1)) +
         panel.grid.major.x = element_blank(),
         panel.grid.minor.y = element_blank())
 
-
+ggsave(plot = nQ51_r1_vek4, filename = "nQ51_r1 x vek4.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
 
 ######graf bez CI
 data %>% 
@@ -1348,25 +1360,26 @@ ci_data <- data %>%
   ungroup()
 
 nQ63_r1_vzd4 = ggplot(ci_data, aes(x = vzd4, y = perc, fill = nQ63_r1)) +
-  geom_col(position = position_dodge(width = 0.9), width = 0.9) +
+  geom_col(position = position_dodge(width = 0.8), width = 0.7) +
   geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper),
-                position = position_dodge(width = 0.9), width = 0.2, alpha = 0.35) +
-  geom_text(aes(label = scales::percent(perc, accuracy = 1)),
-            position = position_dodge(width = 0.9), vjust = -0.5, size = 3) +
+                position = position_dodge(width = 0.8), width = 0.2, alpha = 0.35) +
+  geom_text(aes(label = round(perc * 100, 0)),
+            position = position_dodge(width = 0.8),
+            vjust = -0.5, size = 3)+
   scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, NA)) +
-  scale_fill_brewer(palette = "Set3") +
+  scale_fill_manual(values = tableau_color_pal("Superfishel Stone")(5)) +
   labs(
     x = "", y = "",
     fill = "",
     title = "Pití po krátkodobé abstinenci dle vzdělání",
-    subtitle = paste0("N = ", n)
+    subtitle = paste0("N = ", sum(ci_data$n))
   ) +
   theme_minimal() +
   theme(legend.position = "bottom",
         axis.text.x = element_text(angle = 0, hjust = 0.5, size = 9),
         legend.text = element_text(size = 8),
         panel.grid.major.x = element_blank(),
-        panel.grid.minor.y = element_blank())+
+        panel.grid.minor.y = element_blank()) +
   guides(fill = guide_legend(nrow = 2))
 
 ggsave(plot = nQ63_r1_vzd4, filename = "nQ63_r1 x vzd4.png", path = "grafy",
@@ -1465,13 +1478,14 @@ ci_data <- data %>%
   ungroup()
 
 nQ63_r1_prijem = ggplot(ci_data, aes(x = prijem_osob, y = perc, fill = nQ63_r1)) +
-  geom_col(position = position_dodge(width = 0.9), width = 0.9) +
+  geom_col(position = position_dodge(width = 0.8), width = 0.7) +
   geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper),
-                position = position_dodge(width = 0.9), width = 0.2, alpha = 0.35) +
-  geom_text(aes(label = scales::percent(perc, accuracy = 1)),
-            position = position_dodge(width = 0.9), vjust = -0.5, size = 3) +
+                position = position_dodge(width = 0.8), width = 0.2, alpha = 0.35) +
+  geom_text(aes(label = round(perc * 100, 0)),
+            position = position_dodge(width = 0.8),
+            vjust = -0.5, size = 3)+
   scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, NA)) +
-  scale_fill_brewer(palette = "Set3") +
+  scale_fill_manual(values = tableau_color_pal("Superfishel Stone")(5)) +
   labs(
     x = "", y = "",
     fill = "",
@@ -1581,13 +1595,14 @@ ci_data <- data %>%
   ungroup()
 
 nQ63_r1_vek4 = ggplot(ci_data, aes(x = vek4, y = perc, fill = nQ63_r1)) +
-  geom_col(position = position_dodge(width = 0.9), width = 0.9) +
+  geom_col(position = position_dodge(width = 0.8), width = 0.7) +
   geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper),
-                position = position_dodge(width = 0.9), width = 0.2, alpha = 0.35) +
-  geom_text(aes(label = scales::percent(perc, accuracy = 1)),
-            position = position_dodge(width = 0.9), vjust = -0.5, size = 3) +
+                position = position_dodge(width = 0.8), width = 0.2, alpha = 0.35) +
+  geom_text(aes(label = round(perc * 100, 0)),
+            position = position_dodge(width = 0.8),
+            vjust = -0.5, size = 3)+
   scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, NA)) +
-  scale_fill_brewer(palette = "Set3") +
+  scale_fill_manual(values = tableau_color_pal("Superfishel Stone")(5)) +
   labs(
     x = "", y = "",
     fill = "",
@@ -1697,13 +1712,14 @@ ci_data <- data %>%
   ungroup()
 
 nQ63_r1_pohlavi = ggplot(ci_data, aes(x = nQ88_r1, y = perc, fill = nQ63_r1)) +
-  geom_col(position = position_dodge(width = 0.9), width = 0.9) +
+  geom_col(position = position_dodge(width = 0.8), width = 0.7) +
   geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper),
-                position = position_dodge(width = 0.9), width = 0.2, alpha = 0.35) +
-  geom_text(aes(label = scales::percent(perc, accuracy = 1)),
-            position = position_dodge(width = 0.9), vjust = -0.5, size = 3) +
+                position = position_dodge(width = 0.8), width = 0.2, alpha = 0.35) +
+  geom_text(aes(label = round(perc * 100, 0)),
+            position = position_dodge(width = 0.8),
+            vjust = -0.5, size = 3)+
   scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, NA)) +
-  scale_fill_brewer(palette = "Set3") +
+  scale_fill_manual(values = tableau_color_pal("Superfishel Stone")(5)) +
   labs(
     x = "", y = "",
     fill = "",
@@ -1813,13 +1829,14 @@ ci_data <- data %>%
   ungroup()
 
 nQ63_r1_spotr = ggplot(ci_data, aes(x = celk_spotr_filtr_5kat, y = perc, fill = nQ63_r1)) +
-  geom_col(position = position_dodge(width = 0.9), width = 0.9) +
+  geom_col(position = position_dodge(width = 0.8), width = 0.7) +
   geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper),
-                position = position_dodge(width = 0.9), width = 0.2, alpha = 0.35) +
-  geom_text(aes(label = scales::percent(perc, accuracy = 1)),
-            position = position_dodge(width = 0.9), vjust = -0.5, size = 3) +
+                position = position_dodge(width = 0.8), width = 0.2, alpha = 0.35) +
+  geom_text(aes(label = round(perc * 100, 0)),
+            position = position_dodge(width = 0.8),
+            vjust = -0.5, size = 3)+
   scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, NA)) +
-  scale_fill_brewer(palette = "Set3") +
+  scale_fill_manual(values = tableau_color_pal("Superfishel Stone")(5)) +
   labs(
     x = "", y = "",
     fill = "",
