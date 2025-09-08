@@ -2056,6 +2056,10 @@ ggsave(plot = nQ61_battery, filename = "nQ61-battery.png", path = "grafy",
 
 # Jaká část obyvatel ČR se pokouší nějakým způsobem kontrolovaně o --------
 
+omezovani = data %>% 
+  select(nQ65_r1, tQ66_0_0, nQ67_r1, tQ68_0_0, nQ69_r1,tQ70_0_0, nQ71_r1,tQ72_0_0, nQ73_r1,tQ74_0_0, nQ75_r1, tQ76_0_0)
+
+
 #způsoby omezování alkoholu
   #nQ65_r1 nQ67_r1 nQ69_r1 nQ71_r1 nQ72_r1 nQ73_r1 nQ74_r1
 
@@ -2322,6 +2326,17 @@ druh_alk = data %>%
 is.character(codebook$Q70_kod)
 
 names(codebook)
+
+
+#------------------------------tQ74_0_0---------------------------------#
+
+install.packages("writexl")
+library(writexl)
+
+Q74_kod = data %>% 
+  select(respondent_id_internal, tQ74_0_0)
+
+write_xlsx(Q74_kod, "codebooky/prilez_alk.xlsx")
 
 #------------------------------ nQ77_r1 --------------------------------#
 #Jak u sebe z dlouhodobého pohledu hodnotíte úspěšnost takovéhoto omezování
