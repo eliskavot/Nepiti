@@ -298,6 +298,13 @@ vysledky <- vysledky %>%
 
 vysledky
 
+vysledky <- vysledky %>%
+  mutate(Odpoved = factor(Odpoved, levels = c("Nevím, nedokážu spočítat",
+                                              "Méně než jeden měsíc",
+                                              "<1–2) měsíce",
+                                              "<2–6) měsíců",
+                                              "Půl roku a více")))
+
 # ???
 # Klara: otazka, me se tam nezobrazuji vubec nevim odpovedi (0%) melz bz tam byt?
 ##    a otazka 2 je jesli by to zas nemelo byt nejak logicky serazene a ne na preskacku
@@ -305,16 +312,15 @@ vysledky
 #graf: doba trvani posledni kratkodobe abstinence (N=489)
 tQ54_0_0_cat = ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
   geom_col(fill = "#D9A939", width = 0.8) +
-  geom_errorbar(aes(ymin = CI_dolni_pct, ymax = CI_horni_pct), width = 0.2, alpha = 0.5) +
-  geom_text(aes(label = paste0(round(Podil_pct, 0), " %")), 
-            hjust = 0.25, size = 3.5, fontface = "bold") +
-  labs(title = "Jak dlouho trvala/trvá poslední abstinence", x = "", y = "%", subtitle = paste0("N = ", n)) +
+  geom_text(aes(label = paste0(round(Podil_pct, 0))), #" %"#
+            hjust = -0.25, size = 3.5, fontface = "bold") +
+  scale_y_continuous(labels = scales::percent_format(scale = 1, accuracy = 1), limits = c(0, 35)) +
+  labs(title = "Jak dlouho trvala/trvá poslední abstinence", x = "", y = "", subtitle = paste0("N = ", n)) +
   theme_minimal() +
   theme(plot.title = element_text(face = "bold"),
         panel.grid.major.y = element_blank(),
         axis.text.y = element_text(size = 8)) +
-  coord_flip() +
-  ylim(0, max(vysledky$CI_horni_pct)+5)
+  coord_flip() 
 
 # zobrazeni a ulozeni grafu
 tQ54_0_0_cat
