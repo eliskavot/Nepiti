@@ -30,11 +30,15 @@ data$vek4 <- cut(
 table(data$vek4)
 
 
-##### prejmenovani kategorie ve vzd4
+##### prejmenovani kategorie ve vzd4 a v celkove spotrebe
 
 table(data$vzd4)
 data$vzd4 <- fct_recode(data$vzd4,
                         "VOŠ a VŠ" = "3 \"VOŠ, Bc. a VŠ\"")
+
+table(data$celk_spotr_filtr_5kat)
+data$celk_spotr_filtr_5kat <- fct_recode(data$celk_spotr_filtr_5kat,
+                        "0 - 0,5" = "0- 0,5")
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
@@ -2609,3 +2613,291 @@ ggsave(plot = nQ79, filename = "nQ79.png", path = "grafy",
 
 
 
+
+# tQ80 --------------------------------------------------------------------
+
+table(data$tQ80_0_0) ##99??????
+
+data$tQ80_0_0_num <- as.numeric(as.character(data$tQ80_0_0))
+
+
+describe(data$tQ80_0_0_num, quant=c(.25,.75)) 
+#   n  mean   sd median trimmed  mad min max range skew kurtosis   se Q0.25 Q0.75
+# 813 14.94 4.69     15   15.19 2.97   1  99    98 6.87   127.17 0.16    13    17
+
+
+
+tQ80 = data %>%
+  ggplot(aes(x = tQ80_0_0_num)) +
+  geom_histogram(bins = 30, fill = "#D9A939", color = "white", alpha = 0.9) +
+  theme_minimal() +
+  labs(title = "V kolika letech poprvé ochutnal/a alkoholický nápoj", x = "Roky", y = "",
+       subtitle = paste("N: 813",
+                        "| Průměr:", round(mean(data$tQ80_0_0_num, na.rm=TRUE), 1),
+                        "| Median:", median(data$tQ80_0_0_num, na.rm=TRUE),
+                        "| SD:", round(sd(data$tQ80_0_0_num, na.rm=TRUE), 1))) +
+  theme(plot.title = element_text(face = "bold"))
+
+ggsave(plot = tQ80, filename = "tQ80.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
+
+###kategorizace 
+
+
+data <- data %>%
+  mutate(tQ80_cat = cut(
+    tQ80_0_0_num,
+    breaks = c(0, 10, 15, 20, 99),
+    labels = c("10 let nebo méně", "11–15 let", "16–20 let", "21 a více let"),
+    right = TRUE, include.lowest = TRUE
+  ))
+
+table(data$tQ80_cat)
+
+
+
+
+data %>%
+  filter(!is.na(tQ80_cat)) %>%
+  count(tQ80_cat) %>%
+  mutate(perc = n / sum(n) * 100)
+
+##% + CI
+tabulka <- table(data$tQ80_cat)
+n <- sum(tabulka)
+
+
+vysledky <- data.frame(
+  Odpoved = character(),
+  Pocet = integer(),
+  Podil = numeric(),
+  CI_dolni = numeric(),
+  CI_horni = numeric(),
+  stringsAsFactors = FALSE
+)
+
+for (odpoved in names(tabulka)) {
+  x <- tabulka[odpoved]
+  test <- binom.test(x, n, conf.level = 0.95)
+  
+  vysledky <- rbind(vysledky, data.frame(
+    Odpoved = odpoved,
+    Pocet = x,
+    Podil = x / n,
+    CI_dolni = test$conf.int[1],
+    CI_horni = test$conf.int[2]
+  ))
+}
+
+
+vysledky <- vysledky %>%
+  mutate(
+    Podil_pct = Podil * 100,
+    CI_dolni_pct = CI_dolni * 100,
+    CI_horni_pct = CI_horni * 100
+  ) %>%
+  arrange(desc(Podil_pct)) %>%
+  mutate(Odpoved = factor(Odpoved, levels = rev(Odpoved)))  
+
+
+vysledky <- vysledky %>%
+  mutate(Odpoved = factor(Odpoved, levels = c("10 let nebo méně",
+                                              "11–15 let",
+                                              "16–20 let",
+                                              "21 a více let")))
+levels(data$tQ80_cat)
+
+tQ80_cat = ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
+  geom_col(fill = "#D9A939", width = 0.8) +
+  geom_text(aes(label = paste0(round(Podil_pct, 0))), #" %"#
+            hjust = -0.25, size = 3.5, fontface = "bold") +
+  scale_y_continuous(labels = scales::percent_format(scale = 1, accuracy = 1), limits = c(0, 50)) +
+  labs(title = "V kolika letech poprvé ochutnal/a alkoholický nápoj", x = "", y = "", subtitle = paste0("N = ", n)) +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold"),
+        panel.grid.major.y = element_blank(),
+        axis.text.y = element_text(size = 9)) +
+  coord_flip()
+
+ggsave(plot = tQ80_cat, filename = "tQ80_cat.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
+
+
+# tQ82 --------------------------------------------------------------------
+
+table(data$tQ82_0_0) 
+
+data$tQ82_0_0_num <- as.numeric(as.character(data$tQ82_0_0))
+
+
+describe(data$tQ82_0_0_num, quant=c(.25,.75)) 
+#n   mean   sd median trimmed  mad min max range skew kurtosis   se Q0.25 Q0.75
+#751 16.7 5.34     17   16.64 1.48   0 100   100 5.95    89.09 0.19    15    18
+
+
+tQ82 = data %>%
+  ggplot(aes(x = tQ82_0_0_num)) +
+  geom_histogram(bins = 30, fill = "#D9A939", color = "white", alpha = 0.9) +
+  theme_minimal() +
+  labs(title = "V kolika letech poprvé cítil/a, že je pod vlivem alkoholu", x = "Roky", y = "",
+       subtitle = paste("N: 751",
+                        "| Průměr:", round(mean(data$tQ82_0_0_num, na.rm=TRUE), 1),
+                        "| Median:", median(data$tQ82_0_0_num, na.rm=TRUE),
+                        "| SD:", round(sd(data$tQ82_0_0_num, na.rm=TRUE), 1))) +
+  theme(plot.title = element_text(face = "bold"))
+
+ggsave(plot = tQ82, filename = "tQ82.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
+
+###kategorizace 
+
+
+data <- data %>%
+  mutate(tQ82_cat = cut(
+    tQ82_0_0_num,
+    breaks = c(0, 10, 15, 20, 100),
+    labels = c("10 let nebo méně", "11–15 let", "16–20 let", "21 a více let"),
+    right = TRUE, include.lowest = TRUE
+  ))
+
+table(data$tQ82_cat)
+
+
+
+
+data %>%
+  filter(!is.na(tQ82_cat)) %>%
+  count(tQ82_cat) %>%
+  mutate(perc = n / sum(n) * 100)
+
+##% + CI
+tabulka <- table(data$tQ82_cat)
+n <- sum(tabulka)
+
+
+vysledky <- data.frame(
+  Odpoved = character(),
+  Pocet = integer(),
+  Podil = numeric(),
+  CI_dolni = numeric(),
+  CI_horni = numeric(),
+  stringsAsFactors = FALSE
+)
+
+for (odpoved in names(tabulka)) {
+  x <- tabulka[odpoved]
+  test <- binom.test(x, n, conf.level = 0.95)
+  
+  vysledky <- rbind(vysledky, data.frame(
+    Odpoved = odpoved,
+    Pocet = x,
+    Podil = x / n,
+    CI_dolni = test$conf.int[1],
+    CI_horni = test$conf.int[2]
+  ))
+}
+
+
+vysledky <- vysledky %>%
+  mutate(
+    Podil_pct = Podil * 100,
+    CI_dolni_pct = CI_dolni * 100,
+    CI_horni_pct = CI_horni * 100
+  ) %>%
+  arrange(desc(Podil_pct)) %>%
+  mutate(Odpoved = factor(Odpoved, levels = rev(Odpoved)))  
+
+
+vysledky <- vysledky %>%
+  mutate(Odpoved = factor(Odpoved, levels = c("10 let nebo méně",
+                                              "11–15 let",
+                                              "16–20 let",
+                                              "21 a více let")))
+levels(data$tQ82_cat)
+
+tQ82_cat = ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
+  geom_col(fill = "#D9A939", width = 0.8) +
+  geom_text(aes(label = paste0(round(Podil_pct, 0))), #" %"#
+            hjust = -0.25, size = 3.5, fontface = "bold") +
+  scale_y_continuous(labels = scales::percent_format(scale = 1, accuracy = 1), limits = c(0, 70)) +
+  labs(title = "V kolika letech poprvé cítil/a, že je pod vlivem alkoholu", x = "", y = "", subtitle = paste0("N = ", n)) +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold"),
+        panel.grid.major.y = element_blank(),
+        axis.text.y = element_text(size = 9)) +
+  coord_flip()
+
+ggsave(plot = tQ82_cat, filename = "tQ82_cat.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
+
+
+# celk_spotr_filtr_5kat --------------------------------------------------------
+
+
+table(data$celk_spotr_filtr_5kat)
+
+
+data %>%
+  filter(!is.na(celk_spotr_filtr_5kat)) %>%
+  count(celk_spotr_filtr_5kat) %>%
+  mutate(perc = n / sum(n) * 100)
+
+##% + CI
+tabulka <- table(data$celk_spotr_filtr_5kat)
+n <- sum(tabulka)
+
+
+vysledky <- data.frame(
+  Odpoved = character(),
+  Pocet = integer(),
+  Podil = numeric(),
+  CI_dolni = numeric(),
+  CI_horni = numeric(),
+  stringsAsFactors = FALSE
+)
+
+for (odpoved in names(tabulka)) {
+  x <- tabulka[odpoved]
+  test <- binom.test(x, n, conf.level = 0.95)
+  
+  vysledky <- rbind(vysledky, data.frame(
+    Odpoved = odpoved,
+    Pocet = x,
+    Podil = x / n,
+    CI_dolni = test$conf.int[1],
+    CI_horni = test$conf.int[2]
+  ))
+}
+
+
+vysledky <- vysledky %>%
+  mutate(
+    Podil_pct = Podil * 100,
+    CI_dolni_pct = CI_dolni * 100,
+    CI_horni_pct = CI_horni * 100
+  ) %>%
+  arrange(desc(Podil_pct)) %>%
+  mutate(Odpoved = factor(Odpoved, levels = rev(Odpoved)))  
+
+
+vysledky <- vysledky %>%
+  mutate(Odpoved = factor(Odpoved, levels = c("0 - 0,5",
+                                              "1 - 2",
+                                              "2,5 - 5",
+                                              "5,5 - 9,5",
+                                              "10+" )))
+
+celk_spotr_filtr_5kat = ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
+  geom_col(fill = "#D9A939", width = 0.8) +
+  geom_text(aes(label = paste0(round(Podil_pct, 0))), #" %"#
+            hjust = -0.25, size = 3.5, fontface = "bold") +
+  scale_y_continuous(labels = scales::percent_format(scale = 1, accuracy = 1), limits = c(0, 35)) +
+  labs(title = "Celková spotřeba alkoholu (počet sklenic za týden) ", x = "", y = "", subtitle = paste0("N = ", n)) +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold"),
+        panel.grid.major.y = element_blank(),
+        axis.text.y = element_text(size = 9)) +
+  coord_flip()
+
+ggsave(plot = celk_spotr_filtr_5kat, filename = "celk_spotr_filtr_5kat.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
