@@ -2901,3 +2901,151 @@ celk_spotr_filtr_5kat = ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
 
 ggsave(plot = celk_spotr_filtr_5kat, filename = "celk_spotr_filtr_5kat.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
+
+
+# nQ52 --------------------------------------------------------------------
+
+
+
+table(data$nQ52_r1)
+
+
+data %>%
+  filter(!is.na(nQ52_r1)) %>%
+  count(nQ52_r1) %>%
+  mutate(perc = n / sum(n) * 100)
+
+##% + CI
+tabulka <- table(data$nQ52_r1)
+n <- sum(tabulka)
+
+
+vysledky <- data.frame(
+  Odpoved = character(),
+  Pocet = integer(),
+  Podil = numeric(),
+  CI_dolni = numeric(),
+  CI_horni = numeric(),
+  stringsAsFactors = FALSE
+)
+
+for (odpoved in names(tabulka)) {
+  x <- tabulka[odpoved]
+  test <- binom.test(x, n, conf.level = 0.95)
+  
+  vysledky <- rbind(vysledky, data.frame(
+    Odpoved = odpoved,
+    Pocet = x,
+    Podil = x / n,
+    CI_dolni = test$conf.int[1],
+    CI_horni = test$conf.int[2]
+  ))
+}
+
+
+vysledky <- vysledky %>%
+  mutate(
+    Podil_pct = Podil * 100,
+    CI_dolni_pct = CI_dolni * 100,
+    CI_horni_pct = CI_horni * 100
+  ) %>%
+  arrange(desc(Podil_pct)) %>%
+  mutate(Odpoved = factor(Odpoved, levels = rev(Odpoved)))  
+
+
+vysledky <- vysledky %>%
+  mutate(Odpoved = factor(Odpoved, levels = c("Nikdy jsem nezkusil/a a neplánuji to zkusit",
+                                              "Nikdy jsem nezkusil/a, ale plánuji to",
+                                              "Jednou jsem zkusil/a",
+                                              "Zkusil/a jsem vícekrát",
+                                              "Tímto způsobem abstinuji jednou ročně",
+                                              "Tímto způsobem abstinuji vícekrát ročně")))
+
+nQ52_r1 = ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
+  geom_col(fill = "#D9A939", width = 0.8) +
+  geom_text(aes(label = paste0(round(Podil_pct, 0))), #" %"#
+            hjust = -0.25, size = 3.5, fontface = "bold") +
+  scale_y_continuous(labels = scales::percent_format(scale = 1, accuracy = 1), limits = c(0, 85)) +
+  labs(title = "Zkušenost s abstinencí kratší než 3 týdny ", x = "", y = "", subtitle = paste0("N = ", n)) +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold"),
+        panel.grid.major.y = element_blank(),
+        axis.text.y = element_text(size = 9)) +
+  coord_flip()
+
+ggsave(plot = nQ52_r1, filename = "nQ52.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
+
+
+
+# nQ53 --------------------------------------------------------------------
+
+
+table(data$nQ53_r1)
+
+
+data %>%
+  filter(!is.na(nQ53_r1)) %>%
+  count(nQ53_r1) %>%
+  mutate(perc = n / sum(n) * 100)
+
+##% + CI
+tabulka <- table(data$nQ53_r1)
+n <- sum(tabulka)
+
+
+vysledky <- data.frame(
+  Odpoved = character(),
+  Pocet = integer(),
+  Podil = numeric(),
+  CI_dolni = numeric(),
+  CI_horni = numeric(),
+  stringsAsFactors = FALSE
+)
+
+for (odpoved in names(tabulka)) {
+  x <- tabulka[odpoved]
+  test <- binom.test(x, n, conf.level = 0.95)
+  
+  vysledky <- rbind(vysledky, data.frame(
+    Odpoved = odpoved,
+    Pocet = x,
+    Podil = x / n,
+    CI_dolni = test$conf.int[1],
+    CI_horni = test$conf.int[2]
+  ))
+}
+
+
+vysledky <- vysledky %>%
+  mutate(
+    Podil_pct = Podil * 100,
+    CI_dolni_pct = CI_dolni * 100,
+    CI_horni_pct = CI_horni * 100
+  ) %>%
+  arrange(desc(Podil_pct)) %>%
+  mutate(Odpoved = factor(Odpoved, levels = rev(Odpoved)))  
+
+
+vysledky <- vysledky %>%
+  mutate(Odpoved = factor(Odpoved, levels = c("V tuto chvíli stále abstinuji",
+                                              "Během posledního měsíce",
+                                              "Během posledních 2 až 6 měsíců",
+                                              "Během posledních 7 až 12 měsíců",
+                                              "Před více než rokem")))
+
+nQ53_r1 = ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
+  geom_col(fill = "#D9A939", width = 0.8) +
+  geom_text(aes(label = paste0(round(Podil_pct, 0))), #" %"#
+            hjust = -0.25, size = 3.5, fontface = "bold") +
+  scale_y_continuous(labels = scales::percent_format(scale = 1, accuracy = 1), limits = c(0, 40)) +
+  labs(title = "Kdy ukončil/a poslední krátkodobou abstinenci", x = "", y = "", subtitle = paste0("N = ", n)) +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold"),
+        panel.grid.major.y = element_blank(),
+        axis.text.y = element_text(size = 9)) +
+  coord_flip()
+
+ggsave(plot = nQ53_r1, filename = "nQ53.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
+
