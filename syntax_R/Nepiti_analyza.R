@@ -44,8 +44,8 @@ table(data$celk_spotr_filtr_5kat)
 data$celk_spotr_filtr_5kat <- fct_recode(data$celk_spotr_filtr_5kat,
                         "0 - 0,5" = "0- 0,5")
 
-#------------------------------------------------------------------------------
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
 # Popis souboru / dat
 # N = 1022
 nrow(data)
@@ -67,9 +67,9 @@ data %>%
   count(vzd5) %>% 
   mutate(pct = n/sum(n)*100)
 
-#------------------------------------------------------------------------------
-#------------------------------------------------------------------------------
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
 # Jak rozšířená je krátkodobá  abstinence v české společnosti? ------------
 
 #--------------------------------nQ51_r1--------------------------------------#
@@ -129,8 +129,6 @@ vysledky <- vysledky %>%
                                               "Krátkodobě abstinuji vícekrát ročně")))
 levels(data$nQ51_r1)
 
-
-
 nQ51_r1 = ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
   geom_col(fill = "#D9A939", width = 0.8) +
   geom_text(aes(label = paste0(round(Podil_pct, 0))), #" %"#
@@ -185,6 +183,23 @@ data$tQ54_0_0_num <- as.numeric(as.character(data$tQ54_0_0))
 describe(data$tQ54_0_0_num, quant=c(.25,.75)) 
 #  vars   n  mean    sd median trimmed  mad min max range  skew kurtosis   se Q0.25 Q0.75
 #1    1 489 16.12 50.07      6    8.88 4.45   1 670   669 10.35   118.35 2.26     4    12
+
+# kontrola medianu pro lidi co nekdy zkusili kratkodobou abstinenci delsi ney 3 tydny
+table(data$nQ51_r1)
+data %>% 
+  filter(nQ51_r1 != "Nikdy jsem nezkusil/a a neplánuji to zkusit ") %>% 
+  filter(nQ51_r1 != "Nikdy jsem nezkusil/a, ale plánuji to") %>% 
+  filter(!is.na(tQ54_0_0)) %>%
+  summarise(med = median(tQ54_0_0_num, na.rm = TRUE), 
+            min = min(tQ54_0_0_num, na.rm = TRUE),
+            mod = names(sort(table(tQ54_0_0), decreasing = TRUE))[1])
+
+table(data$nQ51_r1)
+data %>% 
+  filter(!is.na(tQ54_0_0)) %>%
+  summarise(med = median(tQ54_0_0_num, na.rm = TRUE), 
+            min = min(tQ54_0_0_num, na.rm = TRUE),
+            mod = names(sort(table(tQ54_0_0), decreasing = TRUE))[1])
 
 ##CI pro prumer 
 mean_val <- mean(data$tQ54_0_0_num, na.rm = TRUE)

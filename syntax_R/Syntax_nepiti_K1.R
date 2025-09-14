@@ -92,3 +92,15 @@ data %>%
 
 nrow()
 
+# kratkodoba abstinence ---------------------------------------------------
+ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
+  geom_col(fill = "#D9A939", width = 0.8) +
+  geom_text(aes(label = paste0(round(Podil_pct, 0))), #" %"#
+            hjust = -0.25, size = 3.5, fontface = "bold") +
+  scale_y_continuous(labels = scales::percent_format(scale = 1, accuracy = 1), limits = c(0, 37)) +
+  labs(title = "Zkušenost s krátkodobou abstinencí (delší než 3 týdny)", x = "", y = "", subtitle = paste0("N = ", n)) +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold"),
+        panel.grid.major.y = element_blank(),
+        axis.text.y = element_text(size = 9)) +
+  coord_flip()
