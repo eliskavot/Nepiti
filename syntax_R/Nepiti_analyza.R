@@ -2185,6 +2185,13 @@ do jaké míry Vám to pomáhalo při krátkodobé abstinenci? ",
 ggsave(plot = nQ61_battery, filename = "nQ61-battery.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
 
+#------------------------------tQ66_0_0---------------------------------#
+
+omez_pocet_skl = data %>% 
+  select(respondent_id_internal,tQ66_0_0)
+
+
+
 
 # Jaká část obyvatel ČR se pokouší nějakým způsobem kontrolovaně o --------
 
