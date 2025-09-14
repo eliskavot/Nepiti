@@ -90,5 +90,5 @@ data %>%
   select(celk_spotr3_5kat, avg_strategy_use)
 
 
-
+nrow()
 

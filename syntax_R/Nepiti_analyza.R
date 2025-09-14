@@ -16,8 +16,12 @@ missing_color = "grey80"
 seq_pallet5 = c("#FAF0D1", "#F0C661", "#D9A939", "#B57F22", "#855A13")
 seq_pallet4 = c("#FAF0D1", "#F0C661", "#B57F22", "#855A13")
 seq_pallet3 = c("#FAF0D1", "#F0C661", "#B57F22")
-n6_pallet = c(my_colors <- c("#87485B","#A32A2F","#EB9352","#F8E3DB","#91837D", "#37947E"))
-          
+n6_pallet = c(my_colors <- c("#A32A2F","#87485B","#F8E3DB","#91837D","#D9A939", "#37947E"))
+
+n5_pallet = n6_pallet[-4] #n6 bez sedivy
+n4_pallet = n5_pallet[-3] #n6 bez sedive a baby ruzove
+
+#n6_pallet = c(my_colors <- c("#87485B","#A32A2F","#EB9352","#F8E3DB","#91837D", "#37947E"))         
 
 ##### tvorba veku se 4 kategoriemi 
 
