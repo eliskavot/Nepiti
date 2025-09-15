@@ -1381,29 +1381,39 @@ vysledky
 
 
 vysledky <- vysledky %>%
-  mutate(Odpoved = factor(Odpoved, levels = c("Trvale snížil/a spotřebu alkoholu",
-                                              "Přibližně pár měsíců pil/a alkohol méně, ale postupně se vrátil/a k původní spotřebě",
-                                              "Přibližně pár týdnů pil/a alkohol méně, ale postupně se vrátil/a k původní spotřebě",
-                                              "Pil/a alkohol přibližně stejně jako před ní",
-                                              "Pil/a alkohol více než před ní")))
+  mutate(Odpoved = factor(Odpoved, levels = rev(c(
+    "Trvale snížil/a spotřebu alkoholu",
+    "Přibližně pár měsíců pil/a alkohol méně, ale postupně se vrátil/a k původní spotřebě",
+    "Přibližně pár týdnů pil/a alkohol méně, ale postupně se vrátil/a k původní spotřebě",
+    "Pil/a alkohol přibližně stejně jako před ní",
+    "Pil/a alkohol více než před ní"
+  ))))
+
+vysledky$x <- factor(1) 
 
 
-
-
-nQ63_r1 = ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
-  geom_col(fill = "#D9A939", width = 0.8) +
-  geom_text(aes(label = paste0(round(Podil_pct, 0))), #" %"#
-            hjust = -0.25, size = 3.5, fontface = "bold") +
-  scale_y_continuous(labels = scales::percent_format(scale = 1, accuracy = 1), limits = c(0, 50)) +
-  labs(title = "Pití po krátkodobé abstinenci", x = "", y = "", subtitle = paste0("N = ", n)) +
-  theme_minimal() +
-  theme(plot.title = element_text(face = "bold"),
-        panel.grid.major.y = element_blank(),
-        axis.text.y = element_text(size = 9)) +
-  coord_flip()
+nQ63_r1 = ggplot(vysledky, aes(x = x, y = Podil, fill = Odpoved)) +
+  geom_col(width = 0.4) +  
+  geom_text(aes(label = paste0(round(Podil*100))),
+            position = position_stack(vjust = 0.5),
+            size = 5, color = "black") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_fill_manual(values = n5_pallet) +
+  coord_flip() +
+  labs(x = "", y = "", fill = "") +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.y = element_blank(),
+    axis.text.x = element_text(size = 12),
+    axis.ticks.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    legend.position = "top",
+    legend.text = element_text(size = 12)) +
+  guides(fill = guide_legend(nrow = 5, reverse = TRUE))
 
 ggsave(plot = nQ63_r1, filename = "nQ63_r1.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
+
 
 #----------------------------nQ63_r1 x vzd4----------------------------------#
 
@@ -1499,28 +1509,35 @@ ggplot(ci_data, aes(x = vzd4, y = perc, fill = nQ63_r1)) +
 
 ######graf bez CI
 nQ63_r1_vzd4 = data %>% 
-  count(nQ63_r1, vzd4) %>% 
+  mutate(nQ63_r1 = factor(nQ63_r1, levels = c(
+    "Pil/a alkohol více než před ní",
+    "Pil/a alkohol přibližně stejně jako před ní",
+    "Přibližně pár týdnů pil/a alkohol méně, ale postupně se vrátil/a k původní spotřebě",
+    "Přibližně pár měsíců pil/a alkohol méně, ale postupně se vrátil/a k původní spotřebě",
+    "Trvale snížil/a spotřebu alkoholu"
+  ))) %>%
+  count(nQ63_r1, vzd5) %>% 
   na.omit() %>%
-  group_by(vzd4) %>%
+  group_by(vzd5) %>%
   mutate(perc = n / sum(n)) %>% 
-  ggplot(aes(x = vzd4, y = perc, fill = nQ63_r1)) + 
+  ggplot(aes(x = vzd5, y = perc, fill = nQ63_r1)) + 
   geom_col(position = "fill") +
   geom_text(aes(label = round(perc*100, 0)), 
             position = position_fill(vjust = 0.5), 
-            size = 4, color = "black") +
+            size = 5, color = "black") +
   theme_minimal() +
   coord_flip() +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
-  scale_fill_manual(values = n6_pallet) +
-  labs(x = "", y = "", fill = "", 
-       title = "Pití po krátkodobé abstinenci dle vzdělání",
-       subtitle = "N = 695") +
-  theme(legend.position = "bottom",
+  scale_fill_manual(values = n5_pallet) +
+  labs(x = "", y = "", fill = "") +
+  theme(legend.position = "top",
         legend.box = "horizontal",
-        legend.text = element_text(size = 8),
+        axis.text.x = element_text(size = 12),
+        axis.text.y = element_text(size = 12),
+        legend.text = element_text(size = 12),
         panel.grid.major.y = element_blank(),
         panel.grid.minor = element_blank()) +
-  guides(fill = guide_legend(nrow = 2))
+  guides(fill = guide_legend(nrow = 5, reverse = TRUE))
 
 ggsave(plot = nQ63_r1_vzd4, filename = "nQ63_r1 x vzd4.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 26.5, height = 15, scaling = 1)
@@ -1621,28 +1638,35 @@ ci_data <- data %>%
 
 ######graf bez CI
  nQ63_r1_prijem =data %>% 
-  count(nQ63_r1, prijem_osob) %>% 
-  na.omit() %>%
-  group_by(prijem_osob) %>%
-  mutate(perc = n / sum(n)) %>% 
-  ggplot(aes(x = prijem_osob, y = perc, fill = nQ63_r1)) + 
-  geom_col(position = "fill") +
-  geom_text(aes(label = round(perc*100, 0)), 
-            position = position_fill(vjust = 0.5), 
-            size = 4, color = "black") +
-  theme_minimal() +
-  coord_flip() +
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
-  scale_fill_manual(values = n6_pallet) +
-  labs(x = "", y = "", fill = "", 
-       title = "Pití po krátkodobé abstinenci dle příjmu",
-       subtitle = "N = 695") +
-  theme(legend.position = "bottom",
-        legend.box = "horizontal",
-        legend.text = element_text(size = 8),
-        panel.grid.major.y = element_blank(),
-        panel.grid.minor = element_blank()) +
-  guides(fill = guide_legend(nrow = 2))
+   mutate(nQ63_r1 = factor(nQ63_r1, levels = c(
+     "Pil/a alkohol více než před ní",
+     "Pil/a alkohol přibližně stejně jako před ní",
+     "Přibližně pár týdnů pil/a alkohol méně, ale postupně se vrátil/a k původní spotřebě",
+     "Přibližně pár měsíců pil/a alkohol méně, ale postupně se vrátil/a k původní spotřebě",
+     "Trvale snížil/a spotřebu alkoholu"
+   ))) %>%
+   count(nQ63_r1, prijem_osob) %>% 
+   na.omit() %>%
+   group_by(prijem_osob) %>%
+   mutate(perc = n / sum(n)) %>% 
+   ggplot(aes(x = prijem_osob, y = perc, fill = nQ63_r1)) + 
+   geom_col(position = "fill") +
+   geom_text(aes(label = round(perc*100, 0)), 
+             position = position_fill(vjust = 0.5), 
+             size = 5, color = "black") +
+   theme_minimal() +
+   coord_flip() +
+   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+   scale_fill_manual(values = n5_pallet) +
+   labs(x = "", y = "", fill = "") +
+   theme(legend.position = "top",
+         legend.box = "horizontal",
+         axis.text.x = element_text(size = 13),
+         axis.text.y = element_text(size = 13),
+         legend.text = element_text(size = 13),
+         panel.grid.major.y = element_blank(),
+         panel.grid.minor = element_blank()) +
+   guides(fill = guide_legend(nrow = 5, reverse = TRUE))
 
 ggsave(plot = nQ63_r1_prijem, filename = "nQ63_r1 x prijem_osob.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 26.5, height = 15, scaling = 1)
@@ -1741,28 +1765,35 @@ ci_data <- data %>%
 
 ######graf bez CI
  nQ63_r1_vek4 = data %>% 
-  count(nQ63_r1, vek4) %>% 
-  na.omit() %>%
-  group_by(vek4) %>%
-  mutate(perc = n / sum(n)) %>% 
-  ggplot(aes(x = vek4, y = perc, fill = nQ63_r1)) + 
-  geom_col(position = "fill") +
-  geom_text(aes(label = round(perc*100, 0)), 
-            position = position_fill(vjust = 0.5), 
-            size = 4, color = "black") +
-  theme_minimal() +
-  coord_flip() +
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
-  scale_fill_manual(values = n6_pallet) +
-  labs(x = "", y = "", fill = "", 
-       title = "Pití po krátkodobé abstinenci dle věku",
-       subtitle = "N = 695") +
-  theme(legend.position = "bottom",
-        legend.box = "horizontal",
-        legend.text = element_text(size = 8),
-        panel.grid.major.y = element_blank(),
-        panel.grid.minor = element_blank()) +
-  guides(fill = guide_legend(nrow = 2))
+   mutate(nQ63_r1 = factor(nQ63_r1, levels = c(
+     "Pil/a alkohol více než před ní",
+     "Pil/a alkohol přibližně stejně jako před ní",
+     "Přibližně pár týdnů pil/a alkohol méně, ale postupně se vrátil/a k původní spotřebě",
+     "Přibližně pár měsíců pil/a alkohol méně, ale postupně se vrátil/a k původní spotřebě",
+     "Trvale snížil/a spotřebu alkoholu"
+   ))) %>%
+   count(nQ63_r1, vek4) %>% 
+   na.omit() %>%
+   group_by(vek4) %>%
+   mutate(perc = n / sum(n)) %>% 
+   ggplot(aes(x = vek4, y = perc, fill = nQ63_r1)) + 
+   geom_col(position = "fill") +
+   geom_text(aes(label = round(perc*100, 0)), 
+             position = position_fill(vjust = 0.5), 
+             size = 5, color = "black") +
+   theme_minimal() +
+   coord_flip() +
+   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+   scale_fill_manual(values = n5_pallet) +
+   labs(x = "", y = "", fill = "") +
+   theme(legend.position = "top",
+         legend.box = "horizontal",
+         axis.text.x = element_text(size = 13),
+         axis.text.y = element_text(size = 13),
+         legend.text = element_text(size = 13),
+         panel.grid.major.y = element_blank(),
+         panel.grid.minor = element_blank()) +
+   guides(fill = guide_legend(nrow = 5, reverse = TRUE))
 
 ggsave(plot = nQ63_r1_vek4, filename = "nQ63_r1 x vek4.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 26.5, height = 15, scaling = 1)
@@ -1861,28 +1892,35 @@ ci_data <- data %>%
 
 ######graf bez CI
  nQ63_r1_pohlavi = data %>% 
-  count(nQ63_r1, nQ88_r1) %>% 
-  na.omit() %>%
-  group_by(nQ88_r1) %>%
-  mutate(perc = n / sum(n)) %>% 
-  ggplot(aes(x = nQ88_r1, y = perc, fill = nQ63_r1)) + 
-  geom_col(position = "fill") +
-  geom_text(aes(label = round(perc*100, 0)), 
-            position = position_fill(vjust = 0.5), 
-            size = 4, color = "black") +
-  theme_minimal() +
-  coord_flip() +
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
-  scale_fill_manual(values = n6_pallet) +
-  labs(x = "", y = "", fill = "", 
-       title = "Pití po krátkodobé abstinenci dle pohlaví",
-       subtitle = "N = 695") +
-  theme(legend.position = "bottom",
-        legend.box = "horizontal",
-        legend.text = element_text(size = 8),
-        panel.grid.major.y = element_blank(),
-        panel.grid.minor = element_blank()) +
-  guides(fill = guide_legend(nrow = 2))
+   mutate(nQ63_r1 = factor(nQ63_r1, levels = c(
+     "Pil/a alkohol více než před ní",
+     "Pil/a alkohol přibližně stejně jako před ní",
+     "Přibližně pár týdnů pil/a alkohol méně, ale postupně se vrátil/a k původní spotřebě",
+     "Přibližně pár měsíců pil/a alkohol méně, ale postupně se vrátil/a k původní spotřebě",
+     "Trvale snížil/a spotřebu alkoholu"
+   ))) %>%
+   count(nQ63_r1, nQ88_r1) %>% 
+   na.omit() %>%
+   group_by(nQ88_r1) %>%
+   mutate(perc = n / sum(n)) %>% 
+   ggplot(aes(x = nQ88_r1, y = perc, fill = nQ63_r1)) + 
+   geom_col(position = "fill") +
+   geom_text(aes(label = round(perc*100, 0)), 
+             position = position_fill(vjust = 0.5), 
+             size = 5, color = "black") +
+   theme_minimal() +
+   coord_flip() +
+   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+   scale_fill_manual(values = n5_pallet) +
+   labs(x = "", y = "", fill = "") +
+   theme(legend.position = "top",
+         legend.box = "horizontal",
+         axis.text.x = element_text(size = 13),
+         axis.text.y = element_text(size = 13),
+         legend.text = element_text(size = 13),
+         panel.grid.major.y = element_blank(),
+         panel.grid.minor = element_blank()) +
+   guides(fill = guide_legend(nrow = 5, reverse = TRUE))
 
 ggsave(plot = nQ63_r1_pohlavi, filename = "nQ63_r1 x pohlavi.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 26.5, height = 15, scaling = 1)
@@ -1983,6 +2021,13 @@ ggplot(ci_data, aes(x = celk_spotr_filtr_5kat, y = perc, fill = nQ63_r1)) +
 
 ######graf bez CI
 nQ63_r1_spotr = data %>% 
+  mutate(nQ63_r1 = factor(nQ63_r1, levels = c(
+    "Pil/a alkohol více než před ní",
+    "Pil/a alkohol přibližně stejně jako před ní",
+    "Přibližně pár týdnů pil/a alkohol méně, ale postupně se vrátil/a k původní spotřebě",
+    "Přibližně pár měsíců pil/a alkohol méně, ale postupně se vrátil/a k původní spotřebě",
+    "Trvale snížil/a spotřebu alkoholu"
+  ))) %>%
   count(nQ63_r1, celk_spotr_filtr_5kat) %>% 
   na.omit() %>%
   group_by(celk_spotr_filtr_5kat) %>%
@@ -1991,20 +2036,20 @@ nQ63_r1_spotr = data %>%
   geom_col(position = "fill") +
   geom_text(aes(label = round(perc*100, 0)), 
             position = position_fill(vjust = 0.5), 
-            size = 4, color = "black") +
+            size = 5, color = "black") +
   theme_minimal() +
   coord_flip() +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
-  scale_fill_manual(values = n6_pallet) +
-  labs(x = "", y = "", fill = "", 
-       title = "Pití po krátkodobé abstinenci dle počtu sklenic alkoholu (za týden)",
-       subtitle = "N = 695") +
-  theme(legend.position = "bottom",
+  scale_fill_manual(values = n5_pallet) +
+  labs(x = "", y = "", fill = "") +
+  theme(legend.position = "top",
         legend.box = "horizontal",
-        legend.text = element_text(size = 8),
+        axis.text.x = element_text(size = 13),
+        axis.text.y = element_text(size = 13),
+        legend.text = element_text(size = 13),
         panel.grid.major.y = element_blank(),
         panel.grid.minor = element_blank()) +
-  guides(fill = guide_legend(nrow = 2))
+  guides(fill = guide_legend(nrow = 5, reverse = TRUE))
 
 ggsave(plot = nQ63_r1_spotr, filename = "nQ63_r1 x celk_spotr.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 26.5, height = 15, scaling = 1)
