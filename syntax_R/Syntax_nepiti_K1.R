@@ -104,3 +104,12 @@ ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
         panel.grid.major.y = element_blank(),
         axis.text.y = element_text(size = 9)) +
   coord_flip()
+
+#vek: tQ89_0_0
+#vzdelani: vzd4
+
+data %>% 
+  group_by(vzd4) %>% 
+  summarise(m = mean(tQ89_0_0, na.rm = TRUE))
+
+#spotreba: 
