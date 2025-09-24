@@ -155,6 +155,56 @@ vysledky <- vysledky %>%
                                                 "Krátkodobě abstinuji vícekrát ročně"))) %>%
   arrange(Odpoved)
 
+#--------------------------------nQ51_r2--------------------------------------#
+# A zkusil/a jste někdy záměrně abstinovat na dobu kratší než 3 týdny? 
+#nQ52_r1 / graf
+
+# N = 397
+unique(data$nQ52_r1)
+
+data %>% 
+  filter(!is.na(nQ52_r1)) %>%
+  nrow() #N = 397
+
+data %>% 
+  filter(!is.na(nQ52_r1)) %>%
+  count(nQ52_r1)
+
+#graf
+var_label(data$nQ52_r1)
+plot_nQ52_r1 <- data %>% 
+  filter(!is.na(nQ52_r1)) %>% 
+  mutate(Q10_1 = factor(nQ52_r1,
+                        levels = c("6", "5", "4","3","2","1"))) %>%
+  count(nQ52_r1) %>% 
+  mutate(pct = n / sum(n)) %>% 
+  ggplot(aes(x = 1, y = pct, fill = factor(nQ52_r1))) +
+  geom_col(width = 0.05, position = "fill") +
+  geom_text(aes(label = round(pct*100, 0)),
+            position = position_fill(vjust = 0.5),
+            color = "black") +
+  coord_flip() +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_x_continuous(breaks = NULL) +
+  scale_fill_manual(values = n6_pallet,
+                    labels = c(
+                      "1" = "Nikdy jsem nezkusil/a a neplánuji to zkusit",
+                      "2" = "Nikdy jsem nezkusil/a, ale plánuji to",
+                      "3" = "Jednou jsem zkusil/a",
+                      "4" = "Zkusil/a jsem vícekrát",
+                      "5" = "Tímto způsobem abstinuji jednou ročně",
+                      "6" = "Tímto způsobem abstinuji jednou ročně")) +
+  theme_minimal() +
+  labs(
+    x = NULL, y = NULL, fill = NULL) +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        legend.position = "top") +
+  guides(fill = guide_legend(nrow = 3, reverse = TRUE))
+
+plot_nQ52_r1
+ggsave(plot = plot_nQ52_r1, filename = "nQ52_r1.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 8, scaling = 1.2)
 
 #--------------------------------tQ54_0_0--------------------------------------#
 #-> medián, min, max, průměr otázky tQ54_0_0 (Jak dlouho trvala/trvá Vaše
@@ -469,20 +519,6 @@ nQ55_56 = ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
 ggsave(plot = nQ55_56, filename = "nQ55 + 56.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
 
-#Klarka: mela jsem napad pospojovat ty kategorie kdyby nam to nekde treba pomohlo
-# hihi
-#rekodovani promenne nQ51_r1 na nQ51_r1_3kat
-table(data$nQ51_r1)
-
-data$nQ51_r1 <- as.factor(data$nQ51_r1)
-
-library(forcats)
-data <- data %>%
-  mutate(nQ51_r1_3kat = fct_collapse(nQ51_r1, "Nikdy jsem nezkusil/a" = c("Nikdy jsem nezkusil/a a neplánuji to zkusit", "Nikdy jsem nezkusil/a, ale plánuji to"),
-                                     "Zkusil/a jsem jednou/vicekrat" = c("Jednou jsem zkusil/a", "Zkusil/a jsem vícekrát"),
-                                     "Krátkodobě abstinuji jednou/vícekrát ročně" = c("Krátkodobě abstinuji jednou ročně", "Krátkodobě abstinuji vícekrát ročně"))) 
-table(data$nQ51_r1_3kat)
-
 # V jakých částech společnosti je krátkodobá/dlouhodobá abstinence --------
 
 #-> otázku nQ51_r1 protřídit demografiky
@@ -617,16 +653,9 @@ ggsave(plot = nQ51_r1_vzd4, filename = "nQ51_r1 x vzd4.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
 
 
-
-
-
-
-
-
 #------------------------------ nQ51_r1 x vzd3 --------------------------------#
 
 table(data$vzd3)
-
 
 ##### N
 data %>% 
@@ -680,8 +709,6 @@ CramerV(tabulka)
 ## p value = 0,18
 ##lidé s nejvyšším vzděláním častěji nikdy nezkusili a ani neplánují 
 
-
-
 #####graf s CI
 ci_data <- data %>%
   filter(!is.na(nQ51_r1), !is.na(vzd3)) %>%
@@ -719,10 +746,8 @@ ggplot(ci_data, aes(x = vzd3, y = perc, fill = nQ51_r1)) +
         panel.grid.major.x = element_blank(),
         panel.grid.minor.y = element_blank())
 
-
-
 ######graf bez CI
-data %>% 
+nQ51_r1_vzd3 <- data %>% 
   count(nQ51_r1, vzd3) %>% 
   na.omit() %>%
   group_by(vzd3) %>%
@@ -734,7 +759,7 @@ data %>%
             size = 3, color = "black") +
   theme_minimal() +
   coord_flip() +
-  scale_fill_brewer(palette = "Set3")+
+  scale_fill_manual(values = n6_pallet) +
   labs(x = "", y = "", fill = "", title = "Abstinence > 3 týdny x vzdělání 3 kategorie",
        subtitle = "N = 1022")+
   theme(legend.position = "bottom",
@@ -744,54 +769,8 @@ data %>%
         panel.grid.minor = element_blank()) +
   guides(fill = guide_legend(nrow = 2))
 
-
-
-#------------------------------ nQ51_r1_3kat x vzd4 --------------------------------#
-#Klarka: tohle moc nefunguje ... ale pokus bzl
-
-table(data$nQ51_r1_3kat)
-
-#crosstab: vzdelani x kratkodoba abstinence
-data %>%
-  count(vzd4, nQ51_r1_3kat) %>%
-  pivot_wider(
-    names_from = nQ51_r1_3kat,
-    values_from = n,
-    values_fill = 0)
-
-#radkova procenta
-data %>%
-  count(vzd4, nQ51_r1_3kat) %>%
-  group_by(vzd4) %>% 
-  mutate(row_percent = n/ sum(n) *100) %>%
-  select(-n) %>% 
-  pivot_wider(
-    names_from = nQ51_r1_3kat,
-    values_from = row_percent,
-    values_fill = 0)
-  
-######graf bez CI
-data %>% 
-  count(nQ51_r1_3kat, vzd4) %>% 
-  na.omit() %>%
-  group_by(vzd4) %>%
-  mutate(perc = n / sum(n)) %>% 
-  ggplot(aes(x = vzd4, y = perc, fill = nQ51_r1_3kat)) + 
-  geom_col(position = "fill") +
-  geom_text(aes(label = scales::percent(perc, accuracy = 1)), 
-            position = position_fill(vjust = 0.5), 
-            size = 3, color = "black") +
-  theme_minimal() +
-  coord_flip() +
-  scale_fill_brewer(palette = "Set3")+
-  labs(x = "", y = "", fill = "", title = "Abstinence > 3 týdny x vzdělání 4 kategorie",
-       subtitle = "N = 1022")+
-  theme(legend.position = "bottom",
-        legend.box = "horizontal",
-        legend.text = element_text(size = 8),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank()) +
-  guides(fill = guide_legend(nrow = 2))
+ggsave(plot = nQ51_r1_vzd3, filename = "nQ51_r1 x vzd3.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
 
 #------------------------------ nQ51_r1 x prijem_osob --------------------------------#
 
@@ -2258,7 +2237,7 @@ omez_pocet_skl = data %>%
 
 
 
-# Jaká část obyvatel ČR se pokouší nějakým způsobem kontrolovaně o --------
+# OMEZOVANI Jaká část obyvatel ČR se pokouší nějakým způsobem kontrolovaně o --------
 
 omezovani = data %>% 
   select(nQ65_r1, tQ66_0_0, nQ67_r1, tQ68_0_0, nQ69_r1,tQ70_0_0, nQ71_r1,tQ72_0_0, nQ73_r1,tQ74_0_0, nQ75_r1, tQ76_0_0)
@@ -2431,7 +2410,7 @@ data %>%
 recode_limited <- function(x) {
   dplyr::recode(as.numeric(x), `1` = 2, `2` = 1, `3` = 0)}
 
-data_omezovani = data %>%
+data = data %>%
   mutate(nQ65_r1_rec = recode_limited(nQ65_r1),
          nQ67_r1_rec = recode_limited(nQ67_r1),
          nQ69_r1_rec = recode_limited(nQ69_r1),
@@ -2439,62 +2418,60 @@ data_omezovani = data %>%
          nQ73_r1_rec = recode_limited(nQ73_r1),
          nQ75_r1_rec = recode_limited(nQ75_r1))
 
-data_omezovani_kontrola = data_omezovani %>% 
-  select(nQ65_r1_rec, nQ67_r1_rec, nQ69_r1_rec, nQ71_r1_rec, nQ73_r1_rec, nQ75_r1_rec)
-
-
-# vytvoření indexu
+# INDEX OMEZOVÁNÍ
 
 #prumerovy
-data_omezovani <- data_omezovani %>%
-  mutate(omezovani_index_mea = rowMeans(across(c(nQ65_r1_rec,
+data = data %>%
+  mutate(omez_mea = rowMeans(across(c(nQ65_r1_rec,
                                              nQ67_r1_rec,
                                              nQ69_r1_rec,
                                              nQ71_r1_rec,
                                              nQ73_r1_rec,
                                              nQ75_r1_rec)), na.rm = TRUE))
 
-hist(data_omezovani$omezovani_index_mea)
-summary(data_omezovani$omezovani_index_mea)
+hist(data$omez_mea)
+
 
 #souctovy
 
-data_omezovani <- data_omezovani %>%
-  mutate(omezovani_index_sum = rowSums(across(c(nQ65_r1_rec,
+data = data %>%
+  mutate(omez_sum = rowSums(across(c(nQ65_r1_rec,
                                             nQ67_r1_rec,
                                             nQ69_r1_rec,
                                             nQ71_r1_rec,
                                             nQ73_r1_rec,
                                             nQ75_r1_rec)), na.rm = TRUE))
-hist(data_omezovani$omezovani_index_sum)
-summary(data_omezovani$omezovani_index_sum)
+hist(data$omez_sum)
 
-#interpretace demografika
 
-#pohlavi
-boxplot(omezovani_index_sum ~ nQ88_r1,data = data_omezovani)
-boxplot(omezovani_index_mea ~ nQ88_r1,data = data_omezovani)
+#------------------------------ omezovani_index_sum x vzd3 --------------------------------#
 
-#vzd4
-boxplot(omezovani_index_sum ~ vzd4,data = data_omezovani)
-boxplot(omezovani_index_mea ~ vzd4,data = data_omezovani)
+ggplot(data, aes(x = vzd3, y = omezovani_index_sum, fill = vzd3)) +
+  geom_boxplot() +
+  coord_flip() +
+  theme_minimal()
 
-#velikost bydliste 5kat 
-boxplot(omezovani_index_sum ~ tQ108_10_1,data = data_omezovani)
-boxplot(omezovani_index_mea ~ tQ108_10_1,data = data_omezovani)
 
-#ekonomicka aktivita 
-boxplot(omezovani_index_sum ~ ea2,data = data_omezovani)
-boxplot(omezovani_index_mea ~ ea2,data = data_omezovani)
-
-#prijem 
-boxplot(omezovani_index_sum ~ prijem_osob,data = data_omezovani)
-boxplot(omezovani_index_mea ~ prijem_osob,data = data_omezovani)
-
-#celkova spotreba(jen co piji) 
-boxplot(omezovani_index_sum ~ celk_spotr_filtr_5kat,data = data_omezovani)
-boxplot(omezovani_index_mea ~ celk_spotr_filtr_5kat,data = data_omezovani)
-
+#az po kategorizace - to jeste nemam hah pac nevim jak zejo
+data %>% 
+  count(omezovani_index_sum, vzd3) %>% 
+  na.omit() %>%
+  group_by(vzd3) %>%
+  mutate(perc = n / sum(n)) %>% 
+  ggplot(aes(x = vzd3, y = perc, fill = omezovani_index_sum)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = scales::percent(perc, accuracy = 1)), 
+            position = position_fill(vjust = 0.5), 
+            size = 3, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_fill_manual(values = n6_pallet) +
+  theme(legend.position = "bottom",
+        legend.box = "horizontal",
+        legend.text = element_text(size = 8),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  guides(fill = guide_legend(nrow = 2))
 
 
 #regrese - pohlavi, vek, prijem
@@ -2506,6 +2483,19 @@ summary(m1_omez)
 parameters(m1_omez)
 check_model(m1_omez, check = c("linearity", "homogeneity", "normality"))
 
+#------------------------------ omezovani_index_sum x pohlavi --------------------------------#
+
+ggplot(data, aes(x = nQ88_r1, y = omezovani_index_sum, fill = nQ88_r1)) +
+  geom_boxplot() +
+  coord_flip() +
+  theme_minimal()
+
+#------------------------------ omezovani_index_sum x vek --------------------------------#
+
+ggplot(data, aes(x = vek4, y = omezovani_index_sum, fill = vek4)) +
+  geom_boxplot() +
+  coord_flip() +
+  theme_minimal()
 
 #------------------------------tQ74_0_0---------------------------------#
 
