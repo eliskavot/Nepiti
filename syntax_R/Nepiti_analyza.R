@@ -2232,7 +2232,7 @@ omez_pocet_skl = data %>%
 
 
 
-# Jaká část obyvatel ČR se pokouší nějakým způsobem kontrolovaně o --------
+# OMEZOVANI Jaká část obyvatel ČR se pokouší nějakým způsobem kontrolovaně o --------
 
 omezovani = data %>% 
   select(nQ65_r1, tQ66_0_0, nQ67_r1, tQ68_0_0, nQ69_r1,tQ70_0_0, nQ71_r1,tQ72_0_0, nQ73_r1,tQ74_0_0, nQ75_r1, tQ76_0_0)
@@ -2405,7 +2405,7 @@ data %>%
 recode_limited <- function(x) {
   dplyr::recode(as.numeric(x), `1` = 2, `2` = 1, `3` = 0)}
 
-data_omezovani = data %>%
+data = data %>%
   mutate(nQ65_r1_rec = recode_limited(nQ65_r1),
          nQ67_r1_rec = recode_limited(nQ67_r1),
          nQ69_r1_rec = recode_limited(nQ69_r1),
@@ -2413,62 +2413,60 @@ data_omezovani = data %>%
          nQ73_r1_rec = recode_limited(nQ73_r1),
          nQ75_r1_rec = recode_limited(nQ75_r1))
 
-data_omezovani_kontrola = data_omezovani %>% 
-  select(nQ65_r1_rec, nQ67_r1_rec, nQ69_r1_rec, nQ71_r1_rec, nQ73_r1_rec, nQ75_r1_rec)
-
-
-# vytvoření indexu
+# INDEX OMEZOVÁNÍ
 
 #prumerovy
-data_omezovani <- data_omezovani %>%
-  mutate(omezovani_index_mea = rowMeans(across(c(nQ65_r1_rec,
+data = data %>%
+  mutate(omez_mea = rowMeans(across(c(nQ65_r1_rec,
                                              nQ67_r1_rec,
                                              nQ69_r1_rec,
                                              nQ71_r1_rec,
                                              nQ73_r1_rec,
                                              nQ75_r1_rec)), na.rm = TRUE))
 
-hist(data_omezovani$omezovani_index_mea)
-summary(data_omezovani$omezovani_index_mea)
+hist(data$omez_mea)
+
 
 #souctovy
 
-data_omezovani <- data_omezovani %>%
-  mutate(omezovani_index_sum = rowSums(across(c(nQ65_r1_rec,
+data = data %>%
+  mutate(omez_sum = rowSums(across(c(nQ65_r1_rec,
                                             nQ67_r1_rec,
                                             nQ69_r1_rec,
                                             nQ71_r1_rec,
                                             nQ73_r1_rec,
                                             nQ75_r1_rec)), na.rm = TRUE))
-hist(data_omezovani$omezovani_index_sum)
-summary(data_omezovani$omezovani_index_sum)
+hist(data$omez_sum)
 
-#interpretace demografika
 
-#pohlavi
-boxplot(omezovani_index_sum ~ nQ88_r1,data = data_omezovani)
-boxplot(omezovani_index_mea ~ nQ88_r1,data = data_omezovani)
+#------------------------------ omezovani_index_sum x vzd3 --------------------------------#
 
-#vzd4
-boxplot(omezovani_index_sum ~ vzd4,data = data_omezovani)
-boxplot(omezovani_index_mea ~ vzd4,data = data_omezovani)
+ggplot(data, aes(x = vzd3, y = omezovani_index_sum, fill = vzd3)) +
+  geom_boxplot() +
+  coord_flip() +
+  theme_minimal()
 
-#velikost bydliste 5kat 
-boxplot(omezovani_index_sum ~ tQ108_10_1,data = data_omezovani)
-boxplot(omezovani_index_mea ~ tQ108_10_1,data = data_omezovani)
 
-#ekonomicka aktivita 
-boxplot(omezovani_index_sum ~ ea2,data = data_omezovani)
-boxplot(omezovani_index_mea ~ ea2,data = data_omezovani)
-
-#prijem 
-boxplot(omezovani_index_sum ~ prijem_osob,data = data_omezovani)
-boxplot(omezovani_index_mea ~ prijem_osob,data = data_omezovani)
-
-#celkova spotreba(jen co piji) 
-boxplot(omezovani_index_sum ~ celk_spotr_filtr_5kat,data = data_omezovani)
-boxplot(omezovani_index_mea ~ celk_spotr_filtr_5kat,data = data_omezovani)
-
+#az po kategorizace - to jeste nemam hah pac nevim jak zejo
+data %>% 
+  count(omezovani_index_sum, vzd3) %>% 
+  na.omit() %>%
+  group_by(vzd3) %>%
+  mutate(perc = n / sum(n)) %>% 
+  ggplot(aes(x = vzd3, y = perc, fill = omezovani_index_sum)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = scales::percent(perc, accuracy = 1)), 
+            position = position_fill(vjust = 0.5), 
+            size = 3, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_fill_manual(values = n6_pallet) +
+  theme(legend.position = "bottom",
+        legend.box = "horizontal",
+        legend.text = element_text(size = 8),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  guides(fill = guide_legend(nrow = 2))
 
 
 #regrese - pohlavi, vek, prijem
@@ -2480,6 +2478,19 @@ summary(m1_omez)
 parameters(m1_omez)
 check_model(m1_omez, check = c("linearity", "homogeneity", "normality"))
 
+#------------------------------ omezovani_index_sum x pohlavi --------------------------------#
+
+ggplot(data, aes(x = nQ88_r1, y = omezovani_index_sum, fill = nQ88_r1)) +
+  geom_boxplot() +
+  coord_flip() +
+  theme_minimal()
+
+#------------------------------ omezovani_index_sum x vek --------------------------------#
+
+ggplot(data, aes(x = vek4, y = omezovani_index_sum, fill = vek4)) +
+  geom_boxplot() +
+  coord_flip() +
+  theme_minimal()
 
 #------------------------------tQ74_0_0---------------------------------#
 
