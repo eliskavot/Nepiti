@@ -34,7 +34,6 @@ data$vek4 <- cut(
 
 table(data$vek4)
 
-
 ##### prejmenovani kategorie ve vzd4 a v celkove spotrebe
 
 table(data$vzd4)
@@ -44,6 +43,10 @@ data$vzd4 <- fct_recode(data$vzd4,
 table(data$celk_spotr_filtr_5kat)
 data$celk_spotr_filtr_5kat <- fct_recode(data$celk_spotr_filtr_5kat,
                         "0 - 0,5" = "0- 0,5")
+
+table(data$vzd3)
+data$vzd3 <- fct_recode(data$vzd3,
+                        "VOŠ a VŠ" = "VOŠ, Bc. a VŠ")
 
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
@@ -1387,9 +1390,11 @@ nQ63_r1 = ggplot(vysledky, aes(x = x, y = Podil, fill = Odpoved)) +
     axis.text.x = element_text(size = 12),
     axis.ticks.y = element_blank(),
     panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
     legend.position = "top",
     legend.text = element_text(size = 12)) +
   guides(fill = guide_legend(nrow = 5, reverse = TRUE))
+
 
 ggsave(plot = nQ63_r1, filename = "nQ63_r1.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
@@ -1504,7 +1509,7 @@ nQ63_r1_vzd4 = data %>%
   geom_col(position = "fill") +
   geom_text(aes(label = round(perc*100, 0)), 
             position = position_fill(vjust = 0.5), 
-            size = 5, color = "black") +
+            size = 6, color = "black") +
   theme_minimal() +
   coord_flip() +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
@@ -1512,9 +1517,9 @@ nQ63_r1_vzd4 = data %>%
   labs(x = "", y = "", fill = "") +
   theme(legend.position = "top",
         legend.box = "horizontal",
-        axis.text.x = element_text(size = 12),
-        axis.text.y = element_text(size = 12),
-        legend.text = element_text(size = 12),
+        axis.text.x = element_text(size = 14),
+        axis.text.y = element_text(size = 14),
+        legend.text = element_text(size = 14),
         panel.grid.major.y = element_blank(),
         panel.grid.minor = element_blank()) +
   guides(fill = guide_legend(nrow = 5, reverse = TRUE))
@@ -1607,11 +1612,13 @@ ci_data <- data %>%
     subtitle = paste0("N = ", n)
   ) +
   theme_minimal() +
-  theme(legend.position = "bottom",
-        axis.text.x = element_text(angle = 0, hjust = 0.5, size = 9),
-        legend.text = element_text(size = 8),
-        panel.grid.major.x = element_blank(),
-        panel.grid.minor.y = element_blank())+
+  theme(legend.position = "top",
+      legend.box = "horizontal",
+      axis.text.x = element_text(size = 14),
+      axis.text.y = element_text(size = 14),
+      legend.text = element_text(size = 14),
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor = element_blank()) +
   guides(fill = guide_legend(nrow = 2))
 
 
@@ -1633,7 +1640,7 @@ ci_data <- data %>%
    geom_col(position = "fill") +
    geom_text(aes(label = round(perc*100, 0)), 
              position = position_fill(vjust = 0.5), 
-             size = 5, color = "black") +
+             size = 6, color = "black") +
    theme_minimal() +
    coord_flip() +
    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
@@ -1641,9 +1648,9 @@ ci_data <- data %>%
    labs(x = "", y = "", fill = "") +
    theme(legend.position = "top",
          legend.box = "horizontal",
-         axis.text.x = element_text(size = 13),
-         axis.text.y = element_text(size = 13),
-         legend.text = element_text(size = 13),
+         axis.text.x = element_text(size = 14),
+         axis.text.y = element_text(size = 14),
+         legend.text = element_text(size = 14),
          panel.grid.major.y = element_blank(),
          panel.grid.minor = element_blank()) +
    guides(fill = guide_legend(nrow = 5, reverse = TRUE))
@@ -1760,7 +1767,7 @@ ci_data <- data %>%
    geom_col(position = "fill") +
    geom_text(aes(label = round(perc*100, 0)), 
              position = position_fill(vjust = 0.5), 
-             size = 5, color = "black") +
+             size = 6, color = "black") +
    theme_minimal() +
    coord_flip() +
    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
@@ -1768,9 +1775,9 @@ ci_data <- data %>%
    labs(x = "", y = "", fill = "") +
    theme(legend.position = "top",
          legend.box = "horizontal",
-         axis.text.x = element_text(size = 13),
-         axis.text.y = element_text(size = 13),
-         legend.text = element_text(size = 13),
+         axis.text.x = element_text(size = 14),
+         axis.text.y = element_text(size = 14),
+         legend.text = element_text(size = 14),
          panel.grid.major.y = element_blank(),
          panel.grid.minor = element_blank()) +
    guides(fill = guide_legend(nrow = 5, reverse = TRUE))
@@ -1887,7 +1894,7 @@ ci_data <- data %>%
    geom_col(position = "fill") +
    geom_text(aes(label = round(perc*100, 0)), 
              position = position_fill(vjust = 0.5), 
-             size = 5, color = "black") +
+             size = 6, color = "black") +
    theme_minimal() +
    coord_flip() +
    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
@@ -1895,9 +1902,9 @@ ci_data <- data %>%
    labs(x = "", y = "", fill = "") +
    theme(legend.position = "top",
          legend.box = "horizontal",
-         axis.text.x = element_text(size = 13),
-         axis.text.y = element_text(size = 13),
-         legend.text = element_text(size = 13),
+         axis.text.x = element_text(size = 14),
+         axis.text.y = element_text(size = 14),
+         legend.text = element_text(size = 14),
          panel.grid.major.y = element_blank(),
          panel.grid.minor = element_blank()) +
    guides(fill = guide_legend(nrow = 5, reverse = TRUE))
@@ -2016,7 +2023,7 @@ nQ63_r1_spotr = data %>%
   geom_col(position = "fill") +
   geom_text(aes(label = round(perc*100, 0)), 
             position = position_fill(vjust = 0.5), 
-            size = 5, color = "black") +
+            size = 6, color = "black") +
   theme_minimal() +
   coord_flip() +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
@@ -2024,9 +2031,9 @@ nQ63_r1_spotr = data %>%
   labs(x = "", y = "", fill = "") +
   theme(legend.position = "top",
         legend.box = "horizontal",
-        axis.text.x = element_text(size = 13),
-        axis.text.y = element_text(size = 13),
-        legend.text = element_text(size = 13),
+        axis.text.x = element_text(size = 14),
+        axis.text.y = element_text(size = 14),
+        legend.text = element_text(size = 14),
         panel.grid.major.y = element_blank(),
         panel.grid.minor = element_blank()) +
   guides(fill = guide_legend(nrow = 5, reverse = TRUE))
@@ -2143,15 +2150,17 @@ nQ59_battery = data_s_upr_nQ59 %>%
   ) %>%
   ggplot(aes(x = percent, y = label, fill = value, label = percent_label)) +
   geom_col(color = "white") +
-  geom_text(position = position_stack(vjust = 0.5), size = 3) +
+  geom_text(position = position_stack(vjust = 0.5), size = 4) +
   scale_x_continuous(labels = percent_format()) +
   scale_y_discrete(labels = ~str_wrap(., width = 40)) +
   scale_fill_manual(values = c(missing_color, rev(seq_pallet4))) +
   guides(fill = guide_legend(reverse = TRUE, byrow = TRUE)) +
   theme_minimal() +
-  theme(legend.position = "top")+
-  labs(title = "Do jaké míry jste se během Vaší poslední krátkodobé abstinence potýkal/a
-s následujícími překážkami? ",
+  theme(legend.position = "top",
+        axis.text.y = element_text(size = 11),
+        axis.text.x = element_text(size = 11),
+        legend.text = element_text(size = 12))+
+  labs(title = "",
        fill = "",
        y = "",
        x = "")
@@ -2776,8 +2785,8 @@ ggsave(plot = tQ80, filename = "tQ80.png", path = "grafy",
 data <- data %>%
   mutate(tQ80_cat = cut(
     tQ80_0_0_num,
-    breaks = c(0, 10, 15, 20, 99),
-    labels = c("10 let nebo méně", "11–15 let", "16–20 let", "21 a více let"),
+    breaks = c(0, 10, 14, 17, 99),
+    labels = c("10 let nebo méně", "11–14 let", "15–17 let", "18 a více let"),
     right = TRUE, include.lowest = TRUE
   ))
 
@@ -2830,23 +2839,34 @@ vysledky <- vysledky %>%
 
 
 vysledky <- vysledky %>%
-  mutate(Odpoved = factor(Odpoved, levels = c("10 let nebo méně",
-                                              "11–15 let",
-                                              "16–20 let",
-                                              "21 a více let")))
-levels(data$tQ80_cat)
+  mutate(Odpoved = factor(Odpoved, levels = rev(c("10 let nebo méně",
+                                                  "11–14 let",
+                                                  "15–17 let",
+                                                  "18 a více let"))))
 
-tQ80_cat = ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
-  geom_col(fill = "#D9A939", width = 0.8) +
-  geom_text(aes(label = paste0(round(Podil_pct, 0))), #" %"#
-            hjust = -0.25, size = 3.5, fontface = "bold") +
-  scale_y_continuous(labels = scales::percent_format(scale = 1, accuracy = 1), limits = c(0, 50)) +
-  labs(title = "V kolika letech poprvé ochutnal/a alkoholický nápoj", x = "", y = "", subtitle = paste0("N = ", n)) +
-  theme_minimal() +
-  theme(plot.title = element_text(face = "bold"),
-        panel.grid.major.y = element_blank(),
-        axis.text.y = element_text(size = 9)) +
-  coord_flip()
+
+
+vysledky$x <- factor(1) 
+
+
+tQ80_cat = ggplot(vysledky, aes(x = x, y = Podil, fill = Odpoved)) +
+  geom_col(width = 0.4) +  
+  geom_text(aes(label = paste0(round(Podil*100))),
+            position = position_stack(vjust = 0.5),
+            size = 6, color = "black") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_fill_manual(values = rev(seq_pallet4)) +
+  coord_flip() +
+  labs(x = "", y = "", fill = "") +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.y = element_blank(),
+    axis.text.x = element_text(size = 13),
+    axis.ticks.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    legend.position = "top",
+    legend.text = element_text(size = 13)) +
+  guides(fill = guide_legend(nrow = 1, reverse = TRUE))
 
 ggsave(plot = tQ80_cat, filename = "tQ80_cat.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
@@ -2885,7 +2905,7 @@ data <- data %>%
   mutate(tQ82_cat = cut(
     tQ82_0_0_num,
     breaks = c(0, 10, 15, 20, 100),
-    labels = c("10 let nebo méně", "11–15 let", "16–20 let", "21 a více let"),
+    labels = c("10 let nebo méně", "11–14 let", "15–17 let", "18 a více let"),
     right = TRUE, include.lowest = TRUE
   ))
 
@@ -2938,23 +2958,34 @@ vysledky <- vysledky %>%
 
 
 vysledky <- vysledky %>%
-  mutate(Odpoved = factor(Odpoved, levels = c("10 let nebo méně",
-                                              "11–15 let",
-                                              "16–20 let",
-                                              "21 a více let")))
-levels(data$tQ82_cat)
+  mutate(Odpoved = factor(Odpoved, levels = rev(c("10 let nebo méně",
+                                                  "11–14 let",
+                                                  "15–17 let",
+                                                  "18 a více let"))))
 
-tQ82_cat = ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
-  geom_col(fill = "#D9A939", width = 0.8) +
-  geom_text(aes(label = paste0(round(Podil_pct, 0))), #" %"#
-            hjust = -0.25, size = 3.5, fontface = "bold") +
-  scale_y_continuous(labels = scales::percent_format(scale = 1, accuracy = 1), limits = c(0, 70)) +
-  labs(title = "V kolika letech poprvé cítil/a, že je pod vlivem alkoholu", x = "", y = "", subtitle = paste0("N = ", n)) +
-  theme_minimal() +
-  theme(plot.title = element_text(face = "bold"),
-        panel.grid.major.y = element_blank(),
-        axis.text.y = element_text(size = 9)) +
-  coord_flip()
+
+
+vysledky$x <- factor(1) 
+
+
+tQ82_cat = ggplot(vysledky, aes(x = x, y = Podil, fill = Odpoved)) +
+  geom_col(width = 0.4) +  
+  geom_text(aes(label = paste0(round(Podil*100))),
+            position = position_stack(vjust = 0.5),
+            size = 6, color = "black") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_fill_manual(values = rev(seq_pallet4)) +
+  coord_flip() +
+  labs(x = "", y = "", fill = "") +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.y = element_blank(),
+    axis.text.x = element_text(size = 13),
+    axis.ticks.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    legend.position = "top",
+    legend.text = element_text(size = 13)) +
+  guides(fill = guide_legend(nrow = 1, reverse = TRUE))
 
 ggsave(plot = tQ82_cat, filename = "tQ82_cat.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
@@ -3177,4 +3208,79 @@ nQ53_r1 = ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
 
 ggsave(plot = nQ53_r1, filename = "nQ53.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
+
+
+
+    
+celk_spotr_filtr_5katxvzd5 = data %>% 
+  count(celk_spotr_filtr_5kat, vzd5) %>% 
+  mutate(celk_spotr_filtr_5kat = factor(celk_spotr_filtr_5kat, levels = c(
+    "10+",
+    "5,5 - 9,5",
+    "2,5 - 5",
+    "1 - 2",
+    "0 - 0,5"
+  ))) %>%
+  na.omit() %>%
+  group_by(vzd5) %>%
+  mutate(perc = n / sum(n)) %>% 
+  ggplot(aes(x = vzd5, y = perc, fill = celk_spotr_filtr_5kat)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = round(perc*100, 0)), 
+            position = position_fill(vjust = 0.5), 
+            size = 6, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_fill_manual(values = rev(seq_pallet5)) +
+  labs(x = "", y = "", fill = "") +
+  theme(legend.position = "top",
+        legend.box = "horizontal",
+        axis.text.x = element_text(size = 14),
+        axis.text.y = element_text(size = 14),
+        legend.text = element_text(size = 14),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor = element_blank()) +
+  guides(fill = guide_legend(nrow = 1, reverse = TRUE))
+
+ggsave(plot = celk_spotr_filtr_5katxvzd5, filename = "celk_spotr_filtr_5kat x vzd5.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 26.5, height = 15, scaling = 1)
+
+mutate(celk_spotr_filtr_5kat = factor(celk_spotr_filtr_5kat, levels = c(
+  "10+",
+  "5,5 - 9,5",
+  "2,5 - 5",
+  "1 - 2",
+  "0 - 0,5"
+))) %>%
+
+nQ51_r1xvzd4 = data %>% 
+  count(nQ51_r1, vzd4) %>% 
+  na.omit() %>%
+  group_by(vzd4) %>%
+  mutate(perc = n / sum(n)) %>% 
+  ggplot(aes(x = vzd4, y = perc, fill = nQ51_r1)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = round(perc*100, 0)), 
+            position = position_fill(vjust = 0.5), 
+            size = 6, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_fill_manual(values = n6_pallet) +
+  labs(x = "", y = "", fill = "") +
+  theme(legend.position = "top",
+        legend.box = "horizontal",
+        axis.text.x = element_text(size = 14),
+        axis.text.y = element_text(size = 14),
+        legend.text = element_text(size = 14),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor = element_blank()) +
+  guides(fill = guide_legend(nrow = 3, reverse = TRUE))
+
+ggsave(plot = nQ51_r1xvzd4, filename = "nQ51_r1xvzd4.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 26.5, height = 15, scaling = 1)
+
+
+
 
