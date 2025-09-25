@@ -43,6 +43,10 @@ table(data$celk_spotr_filtr_5kat)
 data$celk_spotr_filtr_5kat <- fct_recode(data$celk_spotr_filtr_5kat,
                         "0 - 0,5" = "0- 0,5")
 
+table(data$vzd3)
+data$vzd3 <- fct_recode(data$vzd3,
+                        "VOŠ a VŠ" = "VOŠ, Bc. a VŠ")
+
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Popis souboru / dat
