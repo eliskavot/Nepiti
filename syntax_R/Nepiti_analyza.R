@@ -6,6 +6,7 @@ purrr::walk(packages, library, character.only = TRUE)
 
 data <- read_sav(file = "Data/Alkohol 2025_v02.sav") %>%    
   mutate(across(where(is.labelled), as_factor))
+
 data_labelled <- generate_dictionary(data)
 
 # NASTAVENÍ BAREVNÝCH PALET
@@ -2447,8 +2448,22 @@ data = data %>%
                                             nQ75_r1_rec)), na.rm = TRUE))
 hist(data$omez_sum)
 
+#kategorizace indexu
 
-#------------------------------ omezovani_index_sum x vzd3 --------------------------------#
+# 0 bodů = žádné omezení
+#1–3 body = mírné omezení
+#4–6 bodů = střední omezení
+#7+ bodů = silné omezení
+
+data <- data %>%
+  mutate(omez_sum_cat = case_when(
+    omez_sum  == 0 ~ "Žádné",
+    omez_sum  <= 3 ~ "Mírné",
+    omez_sum  <= 6 ~ "Střední",
+    TRUE ~ "Silné"))
+
+
+#------------------------------ omez_sum x vzd3 --------------------------------#
 
 ggplot(data, aes(x = vzd3, y = omezovani_index_sum, fill = vzd3)) +
   geom_boxplot() +
@@ -2458,11 +2473,10 @@ ggplot(data, aes(x = vzd3, y = omezovani_index_sum, fill = vzd3)) +
 
 #az po kategorizace - to jeste nemam hah pac nevim jak zejo
 data %>% 
-  count(omezovani_index_sum, vzd3) %>% 
-  na.omit() %>%
-  group_by(vzd3) %>%
+  count(vzd3, omez_sum_cat) %>% 
+  group_by(vzd3) %>% 
   mutate(perc = n / sum(n)) %>% 
-  ggplot(aes(x = vzd3, y = perc, fill = omezovani_index_sum)) + 
+  ggplot(aes(x = vzd3, y = perc, fill = omez_sum_cat)) + 
   geom_col(position = "fill") +
   geom_text(aes(label = scales::percent(perc, accuracy = 1)), 
             position = position_fill(vjust = 0.5), 
@@ -2470,11 +2484,13 @@ data %>%
   theme_minimal() +
   coord_flip() +
   scale_fill_manual(values = n6_pallet) +
-  theme(legend.position = "bottom",
-        legend.box = "horizontal",
-        legend.text = element_text(size = 8),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank()) +
+  theme(
+    legend.position = "bottom",
+    legend.box = "horizontal",
+    legend.text = element_text(size = 8),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  ) +
   guides(fill = guide_legend(nrow = 2))
 
 
