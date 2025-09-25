@@ -2403,8 +2403,9 @@ data %>%
 
 # recode
 
-recode_limited <- function(x) {
-  dplyr::recode(as.numeric(x), `1` = 2, `2` = 1, `3` = 0)}
+#verze 1
+
+recode_limited <- function(x) {dplyr::recode(as.numeric(x), `1` = 2, `2` = 1, `3` = 0)}
 
 data = data %>%
   mutate(nQ65_r1_rec = recode_limited(nQ65_r1),
@@ -2414,8 +2415,23 @@ data = data %>%
          nQ73_r1_rec = recode_limited(nQ73_r1),
          nQ75_r1_rec = recode_limited(nQ75_r1))
 
+#verze 2
+
+recode_limited <- function(x) {dplyr::recode(as.numeric(x), `1` = 1, `2` = 1, `3` = 0)}
+
+data = data %>%
+  mutate(nQ65_r1_rec = recode_limited(nQ65_r1),
+         nQ67_r1_rec = recode_limited(nQ67_r1),
+         nQ69_r1_rec = recode_limited(nQ69_r1),
+         nQ71_r1_rec = recode_limited(nQ71_r1),
+         nQ73_r1_rec = recode_limited(nQ73_r1),
+         nQ75_r1_rec = recode_limited(nQ75_r1))
+
+
 # INDEX OMEZOVÁNÍ
 
+
+#verze 1
 #prumerovy
 data = data %>%
   mutate(omez_mea = rowMeans(across(c(nQ65_r1_rec,
@@ -2439,6 +2455,7 @@ data = data %>%
                                             nQ75_r1_rec)), na.rm = TRUE))
 hist(data$omez_sum)
 
+
 #kategorizace indexu
 
 # 0 bodů = žádné omezení
@@ -2453,28 +2470,59 @@ data <- data %>%
     omez_sum  <= 6 ~ "Střední",
     TRUE ~ "Silné"))
 
+#verze 2
+#prumerovy
+data = data %>%
+  mutate(omez_mea = rowMeans(across(c(nQ65_r1_rec,
+                                      nQ67_r1_rec,
+                                      nQ69_r1_rec,
+                                      nQ71_r1_rec,
+                                      nQ73_r1_rec,
+                                      nQ75_r1_rec)), na.rm = TRUE))
 
-#------------------------------ omez_sum x vzd3 --------------------------------#
+hist(data$omez_mea)
 
-ggplot(data, aes(x = vzd3, y = omezovani_index_sum, fill = vzd3)) +
-  geom_boxplot() +
-  coord_flip() +
-  theme_minimal()
 
+#souctovy
+
+data = data %>%
+  mutate(omez_sum = rowSums(across(c(nQ65_r1_rec,
+                                     nQ67_r1_rec,
+                                     nQ69_r1_rec,
+                                     nQ71_r1_rec,
+                                     nQ73_r1_rec,
+                                     nQ75_r1_rec)), na.rm = TRUE))
+hist(data$omez_sum)
+
+
+#kategorizace indexu
+
+data <- data %>%
+  mutate(omez_sum_cat = case_when(
+    omez_sum  == 0 ~ "Žádné",
+    omez_sum  <= 2 ~ "1-2 způsoby",
+    omez_sum  <= 6 ~ "3 a více způsobů",
+    TRUE ~ "Silné"))
+table(data$omez_sum_cat)
+
+
+
+#------------------------------ omez_sum x demografika --------------------------------#
 
 #az po kategorizace - to jeste nemam hah pac nevim jak zejo
 data %>% 
-  count(vzd3, omez_sum_cat) %>% 
-  group_by(vzd3) %>% 
+  count(vek4, omez_sum_cat) %>% 
+  mutate(omez_sum_cat = factor(omez_sum_cat, levels = rev(c("Žádné", "1-2 způsoby", "3 a více způsobů" )))) %>% 
+  group_by(vek4) %>% 
   mutate(perc = n / sum(n)) %>% 
-  ggplot(aes(x = vzd3, y = perc, fill = omez_sum_cat)) + 
+  ggplot(aes(x = vek4, y = perc, fill = omez_sum_cat)) + 
   geom_col(position = "fill") +
   geom_text(aes(label = scales::percent(perc, accuracy = 1)), 
             position = position_fill(vjust = 0.5), 
             size = 3, color = "black") +
   theme_minimal() +
   coord_flip() +
-  scale_fill_manual(values = n6_pallet) +
+  scale_fill_manual(values = rev(seq_pallet3)) +
   theme(
     legend.position = "bottom",
     legend.box = "horizontal",
@@ -2484,6 +2532,37 @@ data %>%
   ) +
   guides(fill = guide_legend(nrow = 2))
 
+
+#nQ77
+
+omez_sum_cat_nQ79_r1 = data %>% 
+  filter(!is.na(nQ79_r1)) %>% 
+  count(nQ79_r1, omez_sum_cat) %>% 
+  mutate(omez_sum_cat = factor(omez_sum_cat, levels = rev(c("Žádné", "1-2 způsoby", "3 a více způsobů" )))) %>% 
+  mutate(nQ79_r1 = factor(nQ79_r1,levels = rev(c("1", "2", "3", "4", "5", "Nevím / Nedokážu posoudit" )))) %>% 
+  group_by(nQ79_r1) %>% 
+  mutate(perc = n / sum(n)) %>% 
+  ggplot(aes(x = nQ79_r1, y = perc, fill = omez_sum_cat)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = round(perc*100, 0)), 
+            position = position_fill(vjust = 0.5), 
+            size = 5, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_fill_manual(values = rev(seq_pallet3)) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  labs(x = "", y = "", fill = "") +
+  theme(legend.position = "top",
+        legend.box = "horizontal",
+        axis.text.x = element_text(size = 12),
+        axis.text.y = element_text(size = 12),
+        legend.text = element_text(size = 12),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor = element_blank()) +
+  guides(fill = guide_legend(nrow = 1, reverse = TRUE))
+
+ggsave(plot = omez_sum_cat_nQ79_r1, filename = "nQ63_r1 x vzd4.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 26.5, height = 15, scaling = 1)
 
 #regrese - pohlavi, vek, prijem
 library(performance)
@@ -2655,8 +2734,6 @@ nQ79 = ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
 
 ggsave(plot = nQ79, filename = "nQ79.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 26.5, height = 15, scaling = 1)
-
-
 
 
 
