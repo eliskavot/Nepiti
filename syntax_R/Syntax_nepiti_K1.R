@@ -42,8 +42,21 @@ ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
 #vzdelani: vzd4
 
 data %>% 
-  group_by(vzd4) %>% 
+  group_by(vzd3) %>% 
   summarise(m = mean(tQ89_0_0, na.rm = TRUE))
+
+data %>% 
+  filter(vzd3 == 1) %>% 
+  ggplot(aes(x = tQ89_0_0)) +
+  geom_histogram()
+
+data %>% 
+  ggplot(aes(tQ89_0_0)) +
+  geom_histogram() + 
+  facet_wrap(~vzd3)
+
+
+table(data$tQ89_0_0)
 
 #spotreba: 
 
@@ -161,3 +174,5 @@ plot_nQ52_r1 <- data %>%
 plot_nQ52_r1
 ggsave(plot = plot_nQ52_r1, filename = "nQ52_r1.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 24.5, height = 8, scaling = 1.2)
+
+table(data$nQ79_r1)
