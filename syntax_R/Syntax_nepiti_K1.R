@@ -228,7 +228,7 @@ plot_nQ55_spotr
 ggsave(plot = plot_nQ55_spotr, filename = "nQ55_r1 x celk_spotr_filtr_5kat.png.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 24.5, height = 19, scaling = 1.4)
 
-# tQ80_cat / vek poprve alkoholu ------------------------------------------
+# tQ80_cat / vek prvni konzumace alkoholu ------------------------------------------
 
 levels(data$tQ80_cat)
 
@@ -265,10 +265,9 @@ ggsave(plot = tQ80_cat, filename = "tQ82_kat.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 24.5, height = 8, scaling = 1.4)
 
 
-# graf: tQ54_0_0_kat2 - delka kratkodob abst kat --------------------------
+# graf: tQ54_0_0_kat2 - delka kratkodob abst kategorizovane --------------------------
 
 levels(data$tQ54_0_0_kat2)
-table(data$tQ54_0_0_kat2)
 
 
 tQ54_0_0_kat2 <- data %>% 
@@ -297,9 +296,9 @@ ggsave(plot = tQ54_0_0_kat2, filename = "tQ54_0_0_kat2.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 24.5, height = 8, scaling = 1.4)
 
 
-# tQ54_0_0_kat2_dodrzeni --------------------------------------------------
+# tQ54_0_0_kat2_dodrzeni / delka abstinence X dodrzeni --------------------------------------------------
 
-
+label_attribute(data$tQ54_0_0)
 tQ54_0_0_kat2_dodrzeni <- data %>% 
   filter(!is.na(tQ54_0_0_kat2) & !is.na(nQ55_r1)) %>%
   count(tQ54_0_0_kat2, nQ55_r1) %>% 
@@ -323,4 +322,91 @@ tQ54_0_0_kat2_dodrzeni <- data %>%
 tQ54_0_0_kat2_dodrzeni
 ggsave(plot = tQ54_0_0_kat2_dodrzeni, filename = "tQ54_0_0_kat2 x dodrzeni abstinence.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 24.5, height = 18, scaling = 1.4)
+
+
+# omexXspotreba / index omezování a množství konzumace,  ----------------------------------
+
+table(data$omez_sum_cat)
+table(data$celk_spotr_filtr_5kat)
+
+table(data$tQ54_0_0_kat2)
+data %>% 
+  filter(!is.na(omez_sum_cat) & !is.na(celk_spotr_filtr_5kat)) %>% 
+  nrow() #929
+
+omexXspotreba <- data %>% 
+  filter(!is.na(celk_spotr_filtr_5kat) & !is.na(omez_sum_cat)) %>%
+  count(celk_spotr_filtr_5kat, omez_sum_cat) %>%
+  group_by(celk_spotr_filtr_5kat) %>% 
+  mutate(perc = n / sum(n)) %>% 
+  ungroup() %>% 
+  mutate(omez_sum_cat = fct_relevel(omez_sum_cat, "Žádné",
+                                                      "1-2 způsoby",
+                                                      "3 a více způsobů")) %>% 
+  mutate(omez_sum_cat = fct_rev(omez_sum_cat)) %>% 
+  ggplot(aes(x = celk_spotr_filtr_5kat, y = perc, fill = omez_sum_cat)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = round(perc*100, 0)), 
+            position = position_fill(vjust = 0.5), 
+            size = 5, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_fill_manual(values = rev(seq_pallet3)) +
+  labs(x = "", y = "", fill = "")+
+  theme(legend.position = "top",
+        legend.box = "horizontal",
+        axis.text.x = element_text(size = 12),
+        axis.text.y = element_text(size = 12),
+        legend.text = element_text(size = 12),
+        panel.grid.minor.y = element_blank()) +
+  guides(fill = guide_legend(nrow = 1, reverse = TRUE))
+
+omexXspotreba
+ggsave(plot = omexXspotreba, filename = "omez_sum_cat x celk_spotr_filtr_5kat.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 26.5, height = 15, scaling = 1)
+
+
+
+# konzumace po kr abstinenci ----------------------------------------------
+#N = 695
+
+levels(data$nQ63_r1)
+data %>%
+  filter(!is.na(nQ63_r1)) %>%
+  nrow()
+  
+
+nQ63_r1 <- data %>% 
+  filter(!is.na(nQ63_r1)) %>%
+  count(nQ63_r1) %>% 
+  mutate(perc = n / sum(n)) %>% 
+  mutate(nQ63_r1 = fct_relevel(nQ63_r1, 
+                               "Trvale snížil/a spotřebu alkoholu",
+                               "Přibližně pár měsíců pil/a alkohol méně, ale postupně se vrátil/a k původní spotřebě",
+                               "Přibližně pár týdnů pil/a alkohol méně, ale postupně se vrátil/a k původní spotřebě",
+                               "Pil/a alkohol přibližně stejně jako před ní",
+                               "Pil/a alkohol více než před ní")) %>% 
+  mutate(nQ63_r1 = fct_rev(nQ63_r1)) %>% 
+  ggplot(aes(x = 1, y = perc, fill = nQ63_r1)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = round(perc*100, 0)), 
+            position = position_fill(vjust = 0.5), 
+            size = 4, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_fill_manual(values = n5_pallet) +
+  labs(x = "", y = "", fill = "")+
+  theme(legend.position = "top",
+        legend.box = "horizontal",
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.y = element_blank()) +
+  guides(fill = guide_legend(nrow = 5, reverse = TRUE))
+
+nQ63_r1
+ggsave(plot = nQ63_r1, filename = "nQ63_r1_v2.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 10, scaling = 1.2)
+
 

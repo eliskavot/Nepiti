@@ -2381,6 +2381,7 @@ nQ65_nQ75_battery = zpusob_omezovani %>%
        y = "",
        x = "")
 
+nQ65_nQ75_battery
 ggsave(plot = nQ65_nQ75_battery, filename = "nQ65_nQ75_battery.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
 
@@ -2504,6 +2505,8 @@ data %>%
         panel.grid.minor = element_blank()) +
   guides(fill = guide_legend(nrow = 2))
 
+
+# #INDEX OMEZOVÁNÍ --------------------------------------------------------
 #INDEX OMEZOVÁNÍ
 
 # recode
