@@ -176,3 +176,151 @@ ggsave(plot = plot_nQ52_r1, filename = "nQ52_r1.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 24.5, height = 8, scaling = 1.2)
 
 table(data$nQ79_r1)
+
+
+
+##########spotreba x dodrzeni 
+
+table <- table(data$nQ55_r1, data$celk_spotr_filtr_5kat)
+table
+
+round(prop.table(table, margin = 2) * 100, 0)
+
+chisq_result <- chisq.test(table) 
+chisq_result$stdres 
+p_value <- chisq_result$p.value
+print(p_value) 
+chisq_value <- chisq_result$statistic
+print(chisq_value) 
+CramerV(table)
+
+data %>% 
+  filter(!is.na(nQ55_r1) & !is.na(celk_spotr_filtr_5kat)) %>% 
+  nrow() #512
+
+levels(data$nQ55_r1)
+plot_nQ55_spotr <- data %>% 
+  count(nQ55_r1, celk_spotr_filtr_5kat) %>% 
+  na.omit() %>%
+  group_by(celk_spotr_filtr_5kat) %>%
+  mutate(perc = n / sum(n)) %>% 
+  mutate(nQ55_r1 = fct_rev(nQ55_r1)) %>% 
+  ggplot(aes(x = celk_spotr_filtr_5kat, y = perc, fill = nQ55_r1)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = round(perc*100, 0)), 
+            position = position_fill(vjust = 0.5), 
+            size = 4, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_fill_manual(values = c(missing_color, n3_pallet),
+                    labels = c(
+                      "1" = "Ano, dodržel/a jsem ji v původně naplánované délce",
+                      "2" = "Abstinoval/a jsem déle, než jsem si původně naplánoval/a",
+                      "3" = "Ne, ukončil/a jsem ji dříve",
+                      "4" = "Neměl/a jsem naplánovanou konkrétní délku")) +
+  labs(x = "", y = "", fill = "")+
+  theme(legend.position = "top",
+        legend.box = "horizontal") +
+  guides(fill = guide_legend(nrow = 4, reverse = TRUE))
+
+plot_nQ55_spotr
+ggsave(plot = plot_nQ55_spotr, filename = "nQ55_r1 x celk_spotr_filtr_5kat.png.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 19, scaling = 1.4)
+
+# tQ80_cat / vek poprve alkoholu ------------------------------------------
+
+levels(data$tQ80_cat)
+
+data %>%
+  filter(!is.na(tQ80_cat)) %>%
+  count(tQ80_cat) %>%
+  mutate(perc = n / sum(n) * 100)
+
+
+tQ80_cat <- data %>% 
+  filter(!is.na(tQ80_cat)) %>%
+  count(tQ80_cat) %>%
+  mutate(perc = n / sum(n)) %>%
+  mutate(tQ80_cat = fct_rev(tQ80_cat)) %>% 
+  ggplot(aes(x = 1, y = perc, fill = tQ80_cat)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = round(perc*100, 0)), 
+            position = position_fill(vjust = 0.5), 
+            size = 4, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_fill_manual(values = rev(seq_pallet4)) +
+  labs(x = "", y = "", fill = "")+
+  theme(legend.position = "top",
+        legend.box = "horizontal",
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.y = element_blank()) +
+  guides(fill = guide_legend(nrow = 1, reverse = TRUE))
+
+tQ80_cat
+ggsave(plot = tQ80_cat, filename = "tQ82_kat.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 8, scaling = 1.4)
+
+
+# graf: tQ54_0_0_kat2 - delka kratkodob abst kat --------------------------
+
+levels(data$tQ54_0_0_kat2)
+table(data$tQ54_0_0_kat2)
+
+
+tQ54_0_0_kat2 <- data %>% 
+  filter(!is.na(tQ54_0_0_kat2)) %>%
+  count(tQ54_0_0_kat2) %>% 
+  mutate(perc = n / sum(n)) %>% 
+  ggplot(aes(x = 1, y = perc, fill = tQ54_0_0_kat2)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = round(perc*100, 0)), 
+            position = position_fill(vjust = 0.5), 
+            size = 4, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_fill_manual(values = rev(seq_pallet4)) +
+  labs(x = "", y = "", fill = "")+
+  theme(legend.position = "top",
+        legend.box = "horizontal",
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.y = element_blank()) +
+  guides(fill = guide_legend(nrow = 1, reverse = TRUE))
+
+tQ54_0_0_kat2
+ggsave(plot = tQ54_0_0_kat2, filename = "tQ54_0_0_kat2.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 8, scaling = 1.4)
+
+
+# tQ54_0_0_kat2_dodrzeni --------------------------------------------------
+
+
+tQ54_0_0_kat2_dodrzeni <- data %>% 
+  filter(!is.na(tQ54_0_0_kat2) & !is.na(nQ55_r1)) %>%
+  count(tQ54_0_0_kat2, nQ55_r1) %>% 
+  mutate(perc = n / sum(n)) %>% 
+  mutate(nQ55_r1 = fct_rev(nQ55_r1)) %>% 
+  ggplot(aes(x = tQ54_0_0_kat2, y = perc, fill = nQ55_r1)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = round(perc*100, 0)), 
+            position = position_fill(vjust = 0.5), 
+            size = 4, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_fill_manual(values = c(missing_color, n3_pallet)) +
+  labs(x = "", y = "", fill = "")+
+  theme(legend.position = "top",
+        legend.box = "horizontal",
+        panel.grid.minor.y = element_blank()) +
+  guides(fill = guide_legend(nrow = 4, reverse = TRUE))
+
+tQ54_0_0_kat2_dodrzeni
+ggsave(plot = tQ54_0_0_kat2_dodrzeni, filename = "tQ54_0_0_kat2 x dodrzeni abstinence.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 18, scaling = 1.4)
+

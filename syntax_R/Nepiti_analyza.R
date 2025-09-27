@@ -21,6 +21,7 @@ n6_pallet = c(my_colors <- c("#A32A2F","#87485B","#F8E3DB","#91837D","#D9A939", 
 
 n5_pallet = n6_pallet[-4] #n6 bez sedivy
 n4_pallet = n5_pallet[-3] #n6 bez sedive a baby ruzove
+n3_pallet = n4_pallet[-2]
 
 #n6_pallet = c(my_colors <- c("#87485B","#A32A2F","#EB9352","#F8E3DB","#91837D", "#37947E"))         
 
@@ -145,6 +146,7 @@ nQ51_r1 = ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
         axis.text.y = element_text(size = 9)) +
   coord_flip()
 
+nQ51_r1
 ggsave(plot = nQ51_r1, filename = "nQ51.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
 
@@ -282,7 +284,6 @@ data %>%
   theme(plot.title = element_text(face = "bold"))+
   scale_x_log10()
 
-# !!!pozor - Klarka: hazi mi to tenhle warning: Removed 533 rows containing non-finite outside the scale range (`stat_bin()`). 
 data %>% 
   ggplot(mapping = aes(x = tQ54_0_0_num))+
   geom_histogram(bins = 15,fill = "#D9A939", color = "white", alpha = 0.9)+
@@ -295,7 +296,6 @@ data %>%
   theme(plot.title = element_text(face = "bold"))+
   scale_x_log10()
 
-#Klara: tohele je moooc hezkyy!
 ##s prumerem + CI
 data %>% 
   ggplot(aes(x = tQ54_0_0_num)) +
@@ -343,8 +343,10 @@ data$tQ54_0_0_kat <- factor(tQ54_0_0_kat,
                                        "Půl roku a více",
                                        "Nevím, nedokážu spočítat"))
 # zobrazeni promenne
-table(data$tQ54_0_0_kat)
+tabulka <- table(data$tQ54_0_0_kat)
+sum(tabulka)
 
+# graf
 ## % + CI
 data %>%
   filter(!is.na(tQ54_0_0_kat)) %>%
@@ -396,9 +398,6 @@ vysledky <- vysledky %>%
                                               "<2–6) měsíců",
                                               "Půl roku a více")))
 
-# ???
-# Klara: otazka, me se tam nezobrazuji vubec nevim odpovedi (0%) melz bz tam byt?
-##    a otazka 2 je jesli by to zas nemelo byt nejak logicky serazene a ne na preskacku
 
 #graf: doba trvani posledni kratkodobe abstinence (N=489)
 tQ54_0_0_cat = ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
@@ -418,6 +417,103 @@ tQ54_0_0_cat
 ggsave(plot = tQ54_0_0_cat, filename = "tQ54_0_0_cat.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
 
+
+
+# kategorizace 2 ukonceni posledni abstinence -------------------------------
+
+# navrh nove kategorizace 2
+data %>% 
+  count(tQ54_0_0 == 4)
+
+# tQ54_0_0 -> N = 695
+describe(data$tQ54_0_0)
+class(data$tQ54_0_0)
+table(data$tQ54_0_0)
+
+#[tQ54_0_0_hovno_kat] --> N = 695
+data <- data %>% 
+  mutate(tQ54_0_0_hovno = fct_recode(tQ54_0_0, "0" = "Nevím, nedokážu spočítat")) %>% 
+  mutate(tQ54_0_0_hovno = as.numeric(as.character(tQ54_0_0_hovno))) %>% 
+  mutate(tQ54_0_0_hovno_kat = case_when(
+    tQ54_0_0_hovno == 0 ~ "Nevím, nedokážu spočítat",
+    tQ54_0_0_hovno >= 1 & tQ54_0_0_hovno <= 3 ~ "1-3 týdny (méně než 1 měsíc)",
+    tQ54_0_0_hovno == 4 ~ "4 týdny (1 měsíc)",
+    tQ54_0_0_hovno >= 5 & tQ54_0_0_hovno <= 12 ~ "5-12 týdnů",
+    tQ54_0_0_hovno >= 13 ~ "Více než 12 týdnů (více než čtvrt roku)",
+    TRUE ~ NA_character_ ),
+    tQ54_0_0_hovno_kat = factor(tQ54_0_0_hovno_kat, 
+                                levels = c("Nevím, nedokážu spočítat",
+                                           "1-3 týdny (méně než 1 měsíc)",
+                                           "4 týdny (1 měsíc)",
+                                           "5-12 týdnů",
+                                           "Více než 12 týdnů (více než čtvrt roku)")))
+
+tabulka = table(data$tQ54_0_0_hovno_kat)
+sum(tabulka)
+
+
+# graf: tQ54_0_0_kat2 - delka kratkodob abst kat --------------------------
+
+levels(data$tQ54_0_0_hovno_kat)
+table(data$tQ54_0_0_hovno_kat)
+
+
+tQ54_0_0_hovno_kat <- data %>% 
+  filter(!is.na(tQ54_0_0_hovno_kat)) %>%
+  count(tQ54_0_0_hovno_kat) %>% 
+  mutate(perc = n / sum(n)) %>% 
+  ggplot(aes(x = 1, y = perc, fill = tQ54_0_0_hovno_kat)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = round(perc*100, 0)), 
+            position = position_fill(vjust = 0.5), 
+            size = 4, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_fill_manual(values = rev(seq_pallet5)) +
+  labs(x = "", y = "", fill = "")+
+  theme(legend.position = "top",
+        legend.box = "horizontal",
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.y = element_blank()) +
+  guides(fill = guide_legend(nrow = 1, reverse = TRUE))
+
+tQ54_0_0_hovno_kat
+ggsave(plot = tQ54_0_0_hovno_kat, filename = "tQ54_0_0_kat2.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 8, scaling = 1.4)
+
+# graf tQ54_0_0_hovno_kat_dodrzeni - doba posledni abstinece X dodrzeni posledni --------
+
+#N = 547
+tabulka <- table(data$tQ54_0_0_hovno_kat, data$nQ55_r1)
+sum(tabulka)
+
+tQ54_0_0_hovno_kat_dodrzeni <- data %>% 
+  filter(!is.na(tQ54_0_0_hovno_kat) & !is.na(nQ55_r1)) %>%
+  group_by(tQ54_0_0_hovno_kat) %>% 
+  count(nQ55_r1) %>% 
+  mutate(perc = n / sum(n)) %>% 
+  ungroup() %>% 
+  mutate(nQ55_r1 = fct_rev(nQ55_r1)) %>% 
+  ggplot(aes(x = tQ54_0_0_hovno_kat, y = perc, fill = nQ55_r1)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = round(perc*100, 0)), 
+            position = position_fill(vjust = 0.5), 
+            size = 4, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_fill_manual(values = c(missing_color, n3_pallet)) +
+  labs(x = "", y = "", fill = "")+
+  theme(legend.position = "top",
+        legend.box = "horizontal",
+        panel.grid.minor.y = element_blank()) +
+  guides(fill = guide_legend(nrow = 4, reverse = TRUE))
+
+tQ54_0_0_hovno_kat_dodrzeni
+ggsave(plot = tQ54_0_0_hovno_kat_dodrzeni, filename = "tQ54_0_0_hovno_kat_dodrzeni x dodrzeni abstinence.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 18, scaling = 1.4)
 
 #---------------------------nQ55_r1 + nQ56_r1---------------------------------#
 
@@ -2542,7 +2638,39 @@ data %>%
   guides(fill = guide_legend(nrow = 2))
 
 
-#nQ77
+#nQ77 / nejde pouzit pac jsme se ptali jen tech kteri pouzili 
+#levels(data$nQ77_r1)
+#data %>% 
+  filter(!is.na(nQ77_r1)) %>% 
+  count(nQ77_r1, omez_sum_cat) %>% 
+  mutate(omez_sum_cat = factor(omez_sum_cat, levels = rev(c("Žádné", "1-2 způsoby", "3 a více způsobů" )))) %>% 
+  mutate(nQ77_r1 = factor(nQ77_r1,levels = rev(c("Daří se mi to dlouhodobě",
+                                                 "Daří se mi to po většinu času, ale někdy po nějaké období ne",
+                                                 "Po většinu času se mi to nedaří, ale někdy po nějaké období ano",
+                                                 "Dlouhodobě se mi to nedaří",
+                                                 "Tyto věci neřeším, nijak se záměrně nesnažím udržovat konzumaci na nějaké stanovené úrovni")))) %>% 
+  group_by(nQ77_r1) %>% 
+  mutate(perc = n / sum(n)) %>% 
+  ggplot(aes(x = nQ77_r1, y = perc, fill = omez_sum_cat)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = round(perc*100, 0)), 
+            position = position_fill(vjust = 0.5), 
+            size = 5, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_fill_manual(values = rev(seq_pallet3)) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  labs(x = "", y = "", fill = "") +
+  theme(legend.position = "top",
+        legend.box = "horizontal",
+        axis.text.x = element_text(size = 12),
+        axis.text.y = element_text(size = 12),
+        legend.text = element_text(size = 12),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor = element_blank()) +
+  guides(fill = guide_legend(nrow = 1, reverse = TRUE))
+
+#nQ79
 
 omez_sum_cat_nQ79_r1 = data %>% 
   filter(!is.na(nQ79_r1)) %>% 
@@ -2570,6 +2698,7 @@ omez_sum_cat_nQ79_r1 = data %>%
         panel.grid.minor = element_blank()) +
   guides(fill = guide_legend(nrow = 1, reverse = TRUE))
 
+omez_sum_cat_nQ79_r1
 ggsave(plot = omez_sum_cat_nQ79_r1, filename = "nQ63_r1 x vzd4.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 26.5, height = 15, scaling = 1)
 
@@ -2752,8 +2881,9 @@ ggsave(plot = nQ79, filename = "nQ79.png", path = "grafy",
 
 
 
-# tQ80 --------------------------------------------------------------------
-
+# tQ80 / vek ochutnani alkoholu --------------------------------------------------------------------
+# V kolika letech jste poprvé ochutnal/a nějaký alkoholický nápoj
+label_attribute(data$tQ80_0_0)
 table(data$tQ80_0_0) ##99??????
 
 data$tQ80_0_0_num <- as.numeric(as.character(data$tQ80_0_0))
@@ -2776,6 +2906,7 @@ tQ80 = data %>%
                         "| SD:", round(sd(data$tQ80_0_0_num, na.rm=TRUE), 1))) +
   theme(plot.title = element_text(face = "bold"))
 
+tQ80
 ggsave(plot = tQ80, filename = "tQ80.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
 
@@ -2853,7 +2984,7 @@ tQ80_cat = ggplot(vysledky, aes(x = x, y = Podil, fill = Odpoved)) +
   geom_col(width = 0.4) +  
   geom_text(aes(label = paste0(round(Podil*100))),
             position = position_stack(vjust = 0.5),
-            size = 6, color = "black") +
+            size = 4, color = "black") +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
   scale_fill_manual(values = rev(seq_pallet4)) +
   coord_flip() +
@@ -2861,15 +2992,14 @@ tQ80_cat = ggplot(vysledky, aes(x = x, y = Podil, fill = Odpoved)) +
   theme_minimal(base_size = 12) +
   theme(
     axis.text.y = element_blank(),
-    axis.text.x = element_text(size = 13),
     axis.ticks.y = element_blank(),
     panel.grid.major.y = element_blank(),
-    legend.position = "top",
-    legend.text = element_text(size = 13)) +
+    legend.position = "top") +
   guides(fill = guide_legend(nrow = 1, reverse = TRUE))
 
+tQ80_cat
 ggsave(plot = tQ80_cat, filename = "tQ80_cat.png", path = "grafy",
-       device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 8, scaling = 1.6)
 
 
 # tQ82 --------------------------------------------------------------------
@@ -2990,6 +3120,32 @@ tQ82_cat = ggplot(vysledky, aes(x = x, y = Podil, fill = Odpoved)) +
 ggsave(plot = tQ82_cat, filename = "tQ82_cat.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
 
+# predelany graf pro vek prvni konyumace
+tQ80_cat <- data %>% 
+  filter(!is.na(tQ80_cat)) %>%
+  count(tQ80_cat) %>%
+  mutate(perc = n / sum(n)) %>%
+  mutate(tQ80_cat = fct_rev(tQ80_cat)) %>% 
+  ggplot(aes(x = 1, y = perc, fill = tQ80_cat)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = round(perc*100, 0)), 
+            position = position_fill(vjust = 0.5), 
+            size = 4, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_fill_manual(values = rev(seq_pallet4)) +
+  labs(x = "", y = "", fill = "")+
+  theme(legend.position = "top",
+        legend.box = "horizontal",
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.y = element_blank()) +
+  guides(fill = guide_legend(nrow = 1, reverse = TRUE))
+
+tQ80_cat
+ggsave(plot = tQ80_cat, filename = "tQ82_kat.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 8, scaling = 1.4)
 
 # celk_spotr_filtr_5kat --------------------------------------------------------
 
@@ -3063,7 +3219,7 @@ ggsave(plot = celk_spotr_filtr_5kat, filename = "celk_spotr_filtr_5kat.png", pat
        device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
 
 
-# nQ52 --------------------------------------------------------------------
+# nQ52 - kratkodoba abst <3 tydny --------------------------------------------------------------------
 
 
 
@@ -3133,14 +3289,16 @@ nQ52_r1 = ggplot(vysledky, aes(x = Odpoved, y = Podil_pct)) +
         axis.text.y = element_text(size = 9)) +
   coord_flip()
 
+nQ52_r1
 ggsave(plot = nQ52_r1, filename = "nQ52.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
 
 
 
-# nQ53 --------------------------------------------------------------------
+# nQ53 Kdy jste ukončil/a svoji poslední krátkodobou abstinenci? --------------------------------------------------------------------
 
-
+labe
+label_attribute(data$nQ53_r1)
 table(data$nQ53_r1)
 
 
