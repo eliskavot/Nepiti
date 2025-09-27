@@ -2340,6 +2340,42 @@ omez_pocet_skl = data %>%
 
 # OMEZOVANI Jaká část obyvatel ČR se pokouší nějakým způsobem kontrolovaně o --------
 
+#hodnoceni omezovani - subjektivni x znamky
+data %>% 
+  filter(!is.na(nQ79_r1) & !is.na(nQ77_r1)) %>% 
+  count(nQ79_r1, nQ77_r1) %>% 
+  mutate(nQ79_r1 = factor(nQ79_r1,levels = rev(c("1", "2", "3", "4", "5", "Nevím / Nedokážu posoudit" )))) %>% 
+  mutate(nQ77_r1 = factor(nQ77_r1, levels = c("Tyto věci neřeším, nijak se záměrně nesnažím udržovat konzumaci na nějaké stanovené úrovni",
+                                              "Dlouhodobě se mi to nedaří",
+                                              "Po většinu času se mi to nedaří, ale někdy po nějaké období ano",
+                                              "Daří se mi to po většinu času, ale někdy po nějaké období ne",
+                                              "Daří se mi to dlouhodobě"))) %>% 
+  group_by(nQ79_r1) %>% 
+  mutate(perc = n / sum(n)) %>% 
+  ggplot(aes(x = nQ79_r1, y = perc, fill = nQ77_r1)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = round(perc*100, 0)), 
+            position = position_fill(vjust = 0.5), 
+            size = 5, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_fill_manual(values = (n5_pallet)) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  labs(x = "", y = "", fill = "") +
+  theme(legend.position = "top",
+        legend.box = "horizontal",
+        axis.text.x = element_text(size = 12),
+        axis.text.y = element_text(size = 12),
+        legend.text = element_text(size = 12),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor = element_blank()) +
+  guides(fill = guide_legend(nrow = 5, reverse = TRUE))
+
+nQ77_r1t_nQ79_r1
+ggsave(plot = nQ77_r1t_nQ79_r1, filename = "nQ77_r1t_nQ79_r1", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 26.5, height = 15, scaling = 1)
+
+
 omezovani = data %>% 
   select(nQ65_r1, tQ66_0_0, nQ67_r1, tQ68_0_0, nQ69_r1,tQ70_0_0, nQ71_r1,tQ72_0_0, nQ73_r1,tQ74_0_0, nQ75_r1, tQ76_0_0)
 
@@ -2535,6 +2571,15 @@ data = data %>%
 
 # INDEX OMEZOVÁNÍ
 
+#souctovy
+data = data %>%
+  mutate(omez_sum = rowSums(select(., nQ65_r1_rec,
+                                   nQ67_r1_rec,
+                                   nQ69_r1_rec,
+                                   nQ71_r1_rec,
+                                   nQ73_r1_rec,
+                                   nQ75_r1_rec), na.rm = TRUE))
+hist(data$omez_sum)
 
 #prumerovy
 data = data %>%
