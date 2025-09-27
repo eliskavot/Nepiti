@@ -2520,7 +2520,7 @@ data = data %>%
          nQ73_r1_rec = recode_limited(nQ73_r1),
          nQ75_r1_rec = recode_limited(nQ75_r1))
 
-#verze 2
+#verze 2 - final
 
 recode_limited <- function(x) {dplyr::recode(as.numeric(x), `1` = 1, `2` = 1, `3` = 0)}
 
@@ -2536,7 +2536,6 @@ data = data %>%
 # INDEX OMEZOVÁNÍ
 
 
-#verze 1
 #prumerovy
 data = data %>%
   mutate(omez_mea = rowMeans(across(c(nQ65_r1_rec,
@@ -2547,57 +2546,6 @@ data = data %>%
                                              nQ75_r1_rec)), na.rm = TRUE))
 
 hist(data$omez_mea)
-
-
-#souctovy
-
-data = data %>%
-  mutate(omez_sum = rowSums(across(c(nQ65_r1_rec,
-                                            nQ67_r1_rec,
-                                            nQ69_r1_rec,
-                                            nQ71_r1_rec,
-                                            nQ73_r1_rec,
-                                            nQ75_r1_rec)), na.rm = TRUE))
-hist(data$omez_sum)
-
-
-#kategorizace indexu
-
-# 0 bodů = žádné omezení
-#1–3 body = mírné omezení
-#4–6 bodů = střední omezení
-#7+ bodů = silné omezení
-
-data <- data %>%
-  mutate(omez_sum_cat = case_when(
-    omez_sum  == 0 ~ "Žádné",
-    omez_sum  <= 3 ~ "Mírné",
-    omez_sum  <= 6 ~ "Střední",
-    TRUE ~ "Silné"))
-
-#verze 2
-#prumerovy
-data = data %>%
-  mutate(omez_mea = rowMeans(across(c(nQ65_r1_rec,
-                                      nQ67_r1_rec,
-                                      nQ69_r1_rec,
-                                      nQ71_r1_rec,
-                                      nQ73_r1_rec,
-                                      nQ75_r1_rec)), na.rm = TRUE))
-
-hist(data$omez_mea)
-
-
-#souctovy
-
-data = data %>%
-  mutate(omez_sum = rowSums(across(c(nQ65_r1_rec,
-                                     nQ67_r1_rec,
-                                     nQ69_r1_rec,
-                                     nQ71_r1_rec,
-                                     nQ73_r1_rec,
-                                     nQ75_r1_rec)), na.rm = TRUE))
-hist(data$omez_sum)
 
 
 #kategorizace indexu
@@ -2614,7 +2562,6 @@ table(data$omez_sum_cat)
 
 #------------------------------ omez_sum x demografika --------------------------------#
 
-#az po kategorizace - to jeste nemam hah pac nevim jak zejo
 data %>% 
   count(vek4, omez_sum_cat) %>% 
   mutate(omez_sum_cat = factor(omez_sum_cat, levels = rev(c("Žádné", "1-2 způsoby", "3 a více způsobů" )))) %>% 
@@ -2637,38 +2584,9 @@ data %>%
   ) +
   guides(fill = guide_legend(nrow = 2))
 
+#------------------------------ omez_sum x hodnoceni omezovani--------------------------------#
 
 #nQ77 / nejde pouzit pac jsme se ptali jen tech kteri pouzili 
-#levels(data$nQ77_r1)
-#data %>% 
-  filter(!is.na(nQ77_r1)) %>% 
-  count(nQ77_r1, omez_sum_cat) %>% 
-  mutate(omez_sum_cat = factor(omez_sum_cat, levels = rev(c("Žádné", "1-2 způsoby", "3 a více způsobů" )))) %>% 
-  mutate(nQ77_r1 = factor(nQ77_r1,levels = rev(c("Daří se mi to dlouhodobě",
-                                                 "Daří se mi to po většinu času, ale někdy po nějaké období ne",
-                                                 "Po většinu času se mi to nedaří, ale někdy po nějaké období ano",
-                                                 "Dlouhodobě se mi to nedaří",
-                                                 "Tyto věci neřeším, nijak se záměrně nesnažím udržovat konzumaci na nějaké stanovené úrovni")))) %>% 
-  group_by(nQ77_r1) %>% 
-  mutate(perc = n / sum(n)) %>% 
-  ggplot(aes(x = nQ77_r1, y = perc, fill = omez_sum_cat)) + 
-  geom_col(position = "fill") +
-  geom_text(aes(label = round(perc*100, 0)), 
-            position = position_fill(vjust = 0.5), 
-            size = 5, color = "black") +
-  theme_minimal() +
-  coord_flip() +
-  scale_fill_manual(values = rev(seq_pallet3)) +
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
-  labs(x = "", y = "", fill = "") +
-  theme(legend.position = "top",
-        legend.box = "horizontal",
-        axis.text.x = element_text(size = 12),
-        axis.text.y = element_text(size = 12),
-        legend.text = element_text(size = 12),
-        panel.grid.major.y = element_blank(),
-        panel.grid.minor = element_blank()) +
-  guides(fill = guide_legend(nrow = 1, reverse = TRUE))
 
 #nQ79
 
