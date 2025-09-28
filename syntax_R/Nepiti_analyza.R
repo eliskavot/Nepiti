@@ -2638,8 +2638,8 @@ ggsave(plot = omez_sum_cat_nQ79_r1, filename = "nQ63_r1 x vzd4.png", path = "gra
 library(performance)
 library(parameters)
 
-m1_omez = lm(omezovani_index_mea ~ vzd4 + nQ88_r1 + ea2 + tQ108_10_1, data = data_omezovani)
-summary(m1_omez)
+m1 = lm(omez_sum ~ vzd3 + nQ88_r1 + vek4 + nQ79_r1, data = data)
+summary(m1)
 parameters(m1_omez)
 check_model(m1_omez, check = c("linearity", "homogeneity", "normality"))
 
@@ -3372,5 +3372,87 @@ ggsave(plot = nQ51_r1xvzd4, filename = "nQ51_r1xvzd4.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 26.5, height = 15, scaling = 1)
 
 
+# INDEXY ------------------------------------------------------------------
 
+# Tvorba indexu -----------------------------------------------------------
+# z proměnných nQ61_0_1 až nQ61_10_1 (11 proměnných)
+
+levels(data$nQ61_0_1)
+levels(data$nQ51_r1)
+
+#PODLE JAKÉ LOGIKY JSEM INDEX DĚLALA:
+#pokud proměnná nQ61_X_1 == "Nevím", pak index_strategie = index_strategie
+#ELSE:
+#pokud proměnná != "Tuto strategii jsem nepraktikoval/a", pak index_stategie = index_strategie + 1
+
+data = data %>%
+  filter(nQ51_r1 != "Nikdy jsem nezkusil/a a neplánuji to zkusit") %>%
+  filter(nQ51_r1 != "Nikdy jsem nezkusil/a, ale plánuji to") %>%
+  rowwise() %>%
+  mutate(
+    index_strategie = sum(
+      as.numeric(
+        c_across(starts_with("nQ61")) %in% c("0 = Vůbec nepomáhalo", "1","2","3","4","5","6","7","8","9","10 = Velmi pomáhalo")),
+      na.rm = TRUE
+    )
+  ) %>%
+  ungroup()
+
+class(data$index_strategie)
+
+
+# Analýzy index a délka abstinence ----------------------------------------
+
+class(data$tQ54_0_0)
+
+# předělávání na numerickou prom.
+data = data %>% 
+  filter(!is.na(tQ54_0_0)) %>% 
+  mutate(tQ54_0_0_num = as.numeric(as.character(tQ54_0_0)))
+
+#Výpočet Spearmanova korelačního koeficientu
+cor.test(data$index_strategie, data$tQ54_0_0_num, method = "spearman")
+
+# Analýzy index a (ne)dodržení plánované délky
+
+ggplot(data, aes(x = nQ55_r1, y = index_strategie)) +
+  geom_boxplot()
+
+
+#index duvody
+data = data %>%
+  filter(nQ51_r1 != "Nikdy jsem nezkusil/a a neplánuji to zkusit") %>%
+  filter(nQ51_r1 != "Nikdy jsem nezkusil/a, ale plánuji to") %>%
+  select(-nQ58_0_1) %>%
+  rowwise() %>%
+  mutate(
+    index_duvody = sum(
+      as.numeric(
+        c_across(starts_with("nQ58")) %in% c("6","7","8","9","10 = Naprosto zásadní")),
+      na.rm = TRUE
+    )
+  ) %>%
+  ungroup() %>% 
+  select(index_duvody, starts_with("nQ58"))
+
+hist(data$index_duvody)
+
+
+#index prekázky
+
+data = data %>%
+  filter(nQ51_r1 != "Nikdy jsem nezkusil/a a neplánuji to zkusit") %>%
+  filter(nQ51_r1 != "Nikdy jsem nezkusil/a, ale plánuji to") %>%
+  rowwise() %>%
+  mutate(
+    index_duvody = sum(
+      as.numeric(
+        c_across(starts_with("nQ59")) %in% c("6","7","8","9","10 = Naprosto zásadní")),
+      na.rm = TRUE
+    )
+  ) %>%
+  ungroup() %>% 
+  select(index_duvody, starts_with("nQ59"))
+
+hist(data$index_duvody)
 
