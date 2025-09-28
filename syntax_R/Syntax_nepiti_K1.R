@@ -371,6 +371,7 @@ ggsave(plot = omexXspotreba, filename = "omez_sum_cat x celk_spotr_filtr_5kat.pn
 # konzumace po kr abstinenci ----------------------------------------------
 #N = 695
 
+
 levels(data$nQ63_r1)
 data %>%
   filter(!is.na(nQ63_r1)) %>%

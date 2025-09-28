@@ -2550,6 +2550,17 @@ data = data %>%
 
 hist(data$omez_mea)
 
+#souctovy
+data = data %>%
+  mutate(omez_sum = rowSums(select(., nQ65_r1_rec,
+                                   nQ67_r1_rec,
+                                   nQ69_r1_rec,
+                                   nQ71_r1_rec,
+                                   nQ73_r1_rec,
+                                   nQ75_r1_rec), na.rm = TRUE))
+hist(data$omez_sum)
+
+
 
 #kategorizace indexu
 
