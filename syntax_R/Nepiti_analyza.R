@@ -855,23 +855,24 @@ nQ51_r1_vzd3 <- data %>%
   mutate(perc = n / sum(n)) %>% 
   ggplot(aes(x = vzd3, y = perc, fill = nQ51_r1)) + 
   geom_col(position = "fill") +
-  geom_text(aes(label = scales::percent(perc, accuracy = 1)), 
+  geom_text(aes(label = round(perc*100, 0)), 
             position = position_fill(vjust = 0.5), 
-            size = 3, color = "black") +
+            size = 4, color = "black") +
   theme_minimal() +
   coord_flip() +
   scale_fill_manual(values = n6_pallet) +
-  labs(x = "", y = "", fill = "", title = "Abstinence > 3 týdny x vzdělání 3 kategorie",
-       subtitle = "N = 1022")+
-  theme(legend.position = "bottom",
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  labs(x = "", y = "", fill = "")+
+  theme(legend.position = "top",
         legend.box = "horizontal",
-        legend.text = element_text(size = 8),
+        legend.text = element_text(size = 9),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank()) +
-  guides(fill = guide_legend(nrow = 2))
+  guides(fill = guide_legend(ncol = 2, reverse = TRUE, byrow = TRUE))
 
+nQ51_r1_vzd3
 ggsave(plot = nQ51_r1_vzd3, filename = "nQ51_r1 x vzd3.png", path = "grafy",
-       device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1)
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 15, scaling = 1.4)
 
 #------------------------------ nQ51_r1 x prijem_osob --------------------------------#
 
