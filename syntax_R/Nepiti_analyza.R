@@ -2639,7 +2639,7 @@ data <- data %>%
     TRUE ~ "Silné"))
 table(data$omez_sum_cat)
 
-
+#nazdarek
 
 #------------------------------ omez_sum x demografika --------------------------------#
 
