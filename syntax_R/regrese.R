@@ -1,4 +1,11 @@
-
+library(nnet)
+library(marginaleffects)
+library(performance)
+library(glmmTMB)
+library(MatchIt)
+library(ordinal)
+library(rms)
+library(MASS)
 
 vars <- c("nQ65_r1","nQ67_r1","nQ69_r1","nQ71_r1","nQ73_r1","nQ75_r1")
 
