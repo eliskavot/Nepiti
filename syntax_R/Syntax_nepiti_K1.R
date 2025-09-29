@@ -411,3 +411,97 @@ ggsave(plot = nQ63_r1, filename = "nQ63_r1_v2.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 24.5, height = 10, scaling = 1.2)
 
 
+# index omezovani ---------------------------------------------------------
+# N = 1022
+
+table(data$omez_sum_cat)
+data %>%
+  filter(!is.na(omez_sum_cat)) %>%
+  nrow()
+
+
+omez_sum_cat <- data %>% 
+  filter(!is.na(omez_sum_cat)) %>%
+  count(omez_sum_cat) %>% 
+  mutate(perc = n / sum(n)) %>% 
+  mutate(omez_sum_cat = fct_relevel(omez_sum_cat, 
+                               "Žádné",
+                               "1-2 způsoby",
+                               "3 a více způsobů")) %>% 
+  mutate(omez_sum_cat = fct_rev(omez_sum_cat)) %>% 
+  ggplot(aes(x = 1, y = perc, fill = omez_sum_cat)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = round(perc*100, 0)), 
+            position = position_fill(vjust = 0.5), 
+            size = 4, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_fill_manual(values = rev(seq_pallet3)) +
+  labs(x = "", y = "", fill = "")+
+  theme(legend.position = "top",
+        legend.box = "horizontal",
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.y = element_blank()) +
+  guides(fill = guide_legend(nrow = 1, reverse = TRUE))
+
+omez_sum_cat
+ggsave(plot = omez_sum_cat, filename = "omez_sum_cat.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 24.5, height = 6, scaling = 1.2)
+
+
+var_label(data$nQ77_r1)
+
+data %>% 
+  filter(!is.na(nQ79_r1) & !is.na(nQ77_r1)) %>% 
+  count(nQ79_r1)
+
+
+# kratkodoba abs X omez_sum_cat -------------------------------------------
+
+levels(data$nQ51_r1)
+levels(data$omez_sum_cat)
+
+nQ51_r1xomez_sum_cat
+
+data %>% 
+  filter(!is.na(nQ51_r1) & !is.na(omez_sum_cat)) %>%
+  count(nQ51_r1, omez_sum_cat) %>%
+  group_by(nQ51_r1) %>% 
+  mutate(perc = n / sum(n)) %>% 
+  ungroup() %>% 
+  mutate(omez_sum_cat = fct_relevel(omez_sum_cat, "Žádné",
+                                    "1-2 způsoby",
+                                    "3 a více způsobů")) %>% 
+  mutate(omez_sum_cat = fct_rev(omez_sum_cat)) %>% 
+  ggplot(aes(x = nQ51_r1, y = perc, fill = omez_sum_cat)) + 
+  geom_col(position = "fill") +
+  geom_text(aes(label = round(perc*100, 0)), 
+            position = position_fill(vjust = 0.5), 
+            size = 5, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_fill_manual(values = rev(seq_pallet3)) +
+  labs(x = "", y = "", fill = "")+
+  theme(legend.position = "top",
+        legend.box = "horizontal",
+        axis.text.x = element_text(size = 12),
+        axis.text.y = element_text(size = 12),
+        legend.text = element_text(size = 12),
+        panel.grid.minor.y = element_blank()) +
+  guides(fill = guide_legend(nrow = 1, reverse = TRUE))
+
+nQ51_r1xomez_sum_cat
+ggsave(plot = nQ51_r1xomez_sum_cat, filename = "nQ51_r1 x omez_sum_cat.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 26.5, height = 15, scaling = 1)
+
+data %>% 
+  filter(!is.na(nQ51_r1) & !is.na(omez_sum_cat)) %>%
+  count(nQ51_r1)
+
+tab = table(data$nQ51_r1, data$omez_sum_cat)
+round(prop.table(tab, margin = 2)*100, 0)  #sloupcova procenta (radkova by byl margin = 1)
+
+
