@@ -149,7 +149,7 @@ res_long$strategy <- factor(res_long$strategy,
                                            dny, kdy piji alkohol")))
 
 
-ggplot(res_long, aes(x = prob, y = strategy, color = group)) +
+haha = ggplot(res_long, aes(x = prob, y = strategy, color = group)) +
   geom_point(size = 5, alpha = 1) +
   scale_color_manual(values = rev(seq_pallet3)) +   
   labs(
@@ -158,13 +158,18 @@ ggplot(res_long, aes(x = prob, y = strategy, color = group)) +
     color = ""
   ) +
   scale_y_discrete(labels = label_wrap(40))+
+  scale_x_continuous(labels = scales::percent_format(accuracy = 1, scale = 1))+
   theme_minimal(base_size = 12) +
   theme(
     axis.text.y = element_text(size = 14),
+    axis.text.x = element_text(size = 14),
     legend.position = "top",
     legend.text = element_text(size = 14),
     panel.grid.minor.x = element_blank()
   )
+
+ggsave(plot = haha, filename = "prav. Daří se mi to dlouhodobě.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 26.5, height = 15, scaling = 1)
 
 
 
