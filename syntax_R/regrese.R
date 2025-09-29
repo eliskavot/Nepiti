@@ -6,6 +6,7 @@ library(MatchIt)
 library(ordinal)
 library(rms)
 library(MASS)
+library(stringr)
 
 vars <- c("nQ65_r1","nQ67_r1","nQ69_r1","nQ71_r1","nQ73_r1","nQ75_r1")
 
@@ -72,3 +73,100 @@ res_list <- lapply(strategy_vars, function(v) {
 
 res <- do.call(rbind, res_list)
 res[order(-res$diff_more_minus_never), ]
+
+#nQ65_r1 = Stanovil/a jsem si maximální množství alkoholu, které mohu vypít při jedné příležitosti,
+#nQ67_r1 = Stanovil/a jsem si maximální počet dnů v týdnu, během kterých mohu pít alkohol,
+#nQ69_r1 = Vyhýbal/a jsem se určitému druhu alkoholu,
+#nQ71_r1 = Stanovil/a jsem si nějaký interval mezi dny, kdy piji alkohol,
+#nQ73_r1 = Pil jsem jen při některých vybraných příležitostech,
+#nQ75_r1 = Přestal/a jsem pít při některých příležitostech, při nichž jsem předtím pil/a
+
+
+
+
+# graf s pravdepodobnostmi pro odpoved "Daří se mi to dlouhodobě------------------------------------------------
+
+
+res <- data.frame(
+  strategy = c("nQ65_r1", "nQ67_r1", "nQ75_r1", "nQ73_r1", "nQ69_r1", "nQ71_r1"),
+  prob_never = c(46.54364, 50.14453, 48.86177, 49.28903, 54.58632, 53.51158),
+  prob_once  = c(56.48057, 40.38614, 44.93755, 54.12713, 37.39696, 36.93988),
+  prob_more  = c(61.20475, 59.79647, 55.49713, 51.38765, 46.56929, 43.43723)
+)
+
+
+
+res$strategy <- dplyr::recode(as.character(res$strategy),
+                              "nQ65_r1" = "Stanovil/a jsem si maximální množství
+                                           alkoholu, které mohu vypít při jedné
+                                           příležitosti",
+                              "nQ67_r1" = "Stanovil/a jsem si maximální počet dnů v
+                                           týdnu, během kterých mohu pít alkohol",
+                              "nQ69_r1" = "Vyhýbal/a jsem se určitému druhu
+                                           alkoholu",
+                              "nQ71_r1" = "Stanovil/a jsem si nějaký interval mezi
+                                           dny, kdy piji alkohol",
+                              "nQ73_r1" = "Pil/a jsem jen při některých vybraných
+                                           příležitostech",
+                              "nQ75_r1" = "Přestal/a jsem pít při některých
+                                           příležitostech, při nichž jsem předtím
+                                           pil/a",
+                              .default = NA_character_
+)
+
+
+res_long <- res %>%
+  pivot_longer(cols = starts_with("prob_"),
+               names_to = "group", values_to = "prob") %>%
+  mutate(group = dplyr::recode(group,
+                        "prob_never" = "Ne, nikdy",
+                        "prob_once"  = "Ano, jednou",
+                        "prob_more"  = "Ano, vícekrát"))
+
+
+res_long$group <- factor(
+  res_long$group,
+  levels = c("Ano, vícekrát", "Ano, jednou", "Ne, nikdy")
+)
+
+
+
+
+res_long$strategy <- factor(res_long$strategy,
+                            levels = rev(c("Stanovil/a jsem si maximální množství
+                                           alkoholu, které mohu vypít při jedné
+                                           příležitosti",
+                                           "Stanovil/a jsem si maximální počet dnů v
+                                           týdnu, během kterých mohu pít alkohol",
+                                           "Přestal/a jsem pít při některých
+                                           příležitostech, při nichž jsem předtím
+                                           pil/a",
+                                           "Pil/a jsem jen při některých vybraných
+                                           příležitostech",
+                                           "Vyhýbal/a jsem se určitému druhu
+                                           alkoholu",
+                                           "Stanovil/a jsem si nějaký interval mezi
+                                           dny, kdy piji alkohol")))
+
+
+ggplot(res_long, aes(x = prob, y = strategy, color = group)) +
+  geom_point(size = 5, alpha = 1) +
+  scale_color_manual(values = rev(seq_pallet3)) +   
+  labs(
+    x = "",
+    y = "",
+    color = ""
+  ) +
+  scale_y_discrete(labels = label_wrap(40))+
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.y = element_text(size = 14),
+    legend.position = "top",
+    legend.text = element_text(size = 14),
+    panel.grid.minor.x = element_blank()
+  )
+
+
+
+
+
