@@ -126,7 +126,7 @@ data %>%
   guides(fill = guide_legend(nrow = 2))
 
 
-#nQ52_r1 / graf -----------------------------------------------------------
+#nQ52_r1 / graf kratkodoba abst -----------------------------------------------------------
 
 # N = 397
 unique(data$nQ52_r1)
@@ -297,14 +297,15 @@ ggsave(plot = tQ54_0_0_kat2, filename = "tQ54_0_0_kat2.png", path = "grafy",
 
 
 # tQ54_0_0_kat2_dodrzeni / delka abstinence X dodrzeni --------------------------------------------------
+table(data$nQ55_r1, data$tQ54_0_0_hovno_kat)
 
 label_attribute(data$tQ54_0_0)
-tQ54_0_0_kat2_dodrzeni <- data %>% 
-  filter(!is.na(tQ54_0_0_kat2) & !is.na(nQ55_r1)) %>%
-  count(tQ54_0_0_kat2, nQ55_r1) %>% 
+tQ54_0_0_hovno_kat_dodrzeni <- data %>% 
+  filter(!is.na(tQ54_0_0_hovno_kat) & !is.na(nQ55_r1)) %>%
+  count(tQ54_0_0_hovno_kat, nQ55_r1) %>% 
   mutate(perc = n / sum(n)) %>% 
   mutate(nQ55_r1 = fct_rev(nQ55_r1)) %>% 
-  ggplot(aes(x = tQ54_0_0_kat2, y = perc, fill = nQ55_r1)) + 
+  ggplot(aes(x = tQ54_0_0_hovno_kat, y = perc, fill = nQ55_r1)) + 
   geom_col(position = "fill") +
   geom_text(aes(label = round(perc*100, 0)), 
             position = position_fill(vjust = 0.5), 
@@ -319,8 +320,8 @@ tQ54_0_0_kat2_dodrzeni <- data %>%
         panel.grid.minor.y = element_blank()) +
   guides(fill = guide_legend(nrow = 4, reverse = TRUE))
 
-tQ54_0_0_kat2_dodrzeni
-ggsave(plot = tQ54_0_0_kat2_dodrzeni, filename = "tQ54_0_0_kat2 x dodrzeni abstinence.png", path = "grafy",
+tQ54_0_0_hovno_kat_dodrzeni
+ggsave(plot = tQ54_0_0_hovno_kat_dodrzeni, filename = "tQ54_0_0_kat2 x dodrzeni abstinence.png", path = "grafy",
        device = ragg::agg_png, units = "cm", width = 24.5, height = 18, scaling = 1.4)
 
 

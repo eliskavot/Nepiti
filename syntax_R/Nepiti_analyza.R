@@ -452,7 +452,7 @@ tabulka = table(data$tQ54_0_0_hovno_kat)
 sum(tabulka)
 
 
-# graf: tQ54_0_0_kat2 - delka kratkodob abst kat --------------------------
+# graf: tQ54_0_0_kat - delka kratkodob abst kat --------------------------
 
 levels(data$tQ54_0_0_hovno_kat)
 table(data$tQ54_0_0_hovno_kat)
