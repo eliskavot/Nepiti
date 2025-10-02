@@ -67,9 +67,14 @@ data %>%
   group_by(nQ88_r1) %>% 
   summarise(mean = mean(tQ89_0_0)) 
 
-# vzdelani: vzd4
+# vzdelani: vzd5
 data %>% 
   count(vzd5) %>% 
+  mutate(pct = n/sum(n)*100)
+
+#vzd3 - 3 kat
+data %>% 
+  count(vzd3) %>% 
   mutate(pct = n/sum(n)*100)
 
 #-----------------------------------------------------------------------------#
