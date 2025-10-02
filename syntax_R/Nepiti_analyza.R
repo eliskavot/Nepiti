@@ -2351,7 +2351,7 @@ omezovani = data %>%
 zpusob_omezovani = data %>% 
   select(nQ65_r1, nQ67_r1, nQ69_r1, nQ71_r1, nQ73_r1, nQ75_r1)
 
-nQ65_nQ75_battery = zpusob_omezovani %>% 
+zpusob_omezovani %>% 
   pivot_longer(cols = everything(), names_to = "item", values_to = "value") %>%
   count(item, value) %>%
   left_join(data_labelled %>% 
