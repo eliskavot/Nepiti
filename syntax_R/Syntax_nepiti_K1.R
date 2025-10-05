@@ -506,3 +506,36 @@ tab = table(data$nQ51_r1, data$omez_sum_cat)
 round(prop.table(tab, margin = 2)*100, 0)  #sloupcova procenta (radkova by byl margin = 1)
 
 
+
+# znamky x vek ------------------------------------------------------------
+
+table(data$vek4)
+data %>% 
+  filter(!is.na(nQ79_r1) & !is.na(vek4)) %>%
+  count(nQ79_r1, vek4) %>%
+  group_by(nQ79_r1) %>% 
+  mutate(perc = n / sum(n)) %>% 
+  ungroup() %>% 
+  mutate(nQ79_r1 = fct_rev(nQ79_r1)) %>% 
+  ggplot(aes(x = nQ79_r1, y = perc, fill = vek4)) +
+  geom_col(position = "fill") +
+  geom_text(aes(label = round(perc*100, 0)), 
+            position = position_fill(vjust = 0.5), 
+            size = 5, color = "black") +
+  theme_minimal() +
+  coord_flip() +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_fill_manual(values = rev(seq_pallet4)) +
+  labs(x = "", y = "", fill = "")+
+  theme(legend.position = "top",
+        legend.box = "horizontal",
+        axis.text.x = element_text(size = 12),
+        axis.text.y = element_text(size = 12),
+        legend.text = element_text(size = 12),
+        panel.grid.minor.y = element_blank()) +
+  guides(fill = guide_legend(nrow = 1, reverse = TRUE))
+
+nQ51_r1xomez_sum_cat
+ggsave(plot = nQ51_r1xomez_sum_cat, filename = "nQ51_r1 x omez_sum_cat.png", path = "grafy",
+       device = ragg::agg_png, units = "cm", width = 26.5, height = 15, scaling = 1)
+
