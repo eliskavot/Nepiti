@@ -2356,7 +2356,7 @@ omezovani = data %>%
 zpusob_omezovani = data %>% 
   select(nQ65_r1, nQ67_r1, nQ69_r1, nQ71_r1, nQ73_r1, nQ75_r1)
 
-zpusob_omezovani %>% 
+nQ65_nQ75_battery = zpusob_omezovani %>% 
   pivot_longer(cols = everything(), names_to = "item", values_to = "value") %>%
   count(item, value) %>%
   left_join(data_labelled %>% 
@@ -2378,7 +2378,7 @@ zpusob_omezovani %>%
   geom_text(position = position_stack(vjust = 0.5), size = 3) +
   scale_x_continuous(labels = percent_format()) +
   scale_y_discrete(labels = ~str_wrap(., width = 40)) +
-  scale_fill_manual(values = c(missing_color, rev(seq_pallet3))) +
+  scale_fill_manual(values = c(seq_pallet3)) +
   guides(fill = guide_legend(reverse = TRUE, byrow = TRUE, nrow = 1)) +
   theme_minimal() +
   theme(legend.position = "top")+
@@ -2554,6 +2554,7 @@ data = data %>%
                                              nQ73_r1_rec,
                                              nQ75_r1_rec)), na.rm = TRUE))
 
+
 hist(data$omez_mea)
 
 #souctovy
@@ -2579,6 +2580,18 @@ data <- data %>%
 table(data$omez_sum_cat)
 
 #nazdarek
+
+#index cat průměrný známky
+str(data$nQ79_r1)
+data$nQ79_r1 = as.numeric(as.character(data$nQ79_r1))
+
+data %>%
+  group_by(omez_sum_cat) %>%
+  summarise(
+    prumerna_znamka = mean(nQ79_r1, na.rm = TRUE),
+    n = n())
+mean(data$nQ79_r1, na.rm = TRUE)
+
 
 #------------------------------ omez_sum x demografika --------------------------------#
 
